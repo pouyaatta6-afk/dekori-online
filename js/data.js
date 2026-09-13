@@ -25,10 +25,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable_jzyJdFozoJDDu7IpTHo1gA_9xX5y_sR';
 var supabaseClient = null;
 var _dekoriWriteQueue = {};
 var _dekoriWriteTimers = {};
-var _dekoriSyncing = false;
 var _dekoriRealtimeChannel = null;
 var _dekoriRealtimeStarted = false;
 var _dekoriPollTimer = null;
+var _dekoriBooting = false;
 
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
@@ -36,12 +36,10 @@ try {
       auth: { persistSession: false, autoRefreshToken: false }
     });
   }
-} catch (e) {
-  console.warn('Supabase init error:', e);
-}
+} catch (e) { console.warn('Supabase init error:', e); }
 
-// داده‌هایی که باید بین همه دستگاه‌ها مشترک باشند.
-// cart و session عمداً فقط روی همان دستگاه می‌مانند.
+// اطلاعات زیر بین تمام دستگاه‌ها مشترک است.
+// cart و نشست ورود عمداً فقط روی همان دستگاه می‌مانند.
 var SHARED_KEYS = [
   'products', 'settings', 'categories', 'sellers', 'customCode',
   'coupons', 'tickets', 'pendingSellers', 'reviews', 'qa',
@@ -49,70 +47,79 @@ var SHARED_KEYS = [
 ];
 var LOCAL_ONLY_KEYS = ['cart', 'customer_session', 'seller'];
 
+function _localKey(key) { return 'dekori_' + key; }
+function _tsKey(key) { return 'dekori_ts_' + key; }
+function _dirtyKey(key) { return 'dekori_dirty_' + key; }
+
 function getData(key, defaultVal) {
   try {
-    var raw = localStorage.getItem('dekori_' + key);
+    var raw = localStorage.getItem(_localKey(key));
     if (raw == null) return defaultVal;
     return JSON.parse(raw);
   } catch (e) { return defaultVal; }
 }
 
+function _setLocal(key, value) {
+  localStorage.setItem(_localKey(key), JSON.stringify(value));
+}
+function _getLocalTs(key) {
+  return parseInt(localStorage.getItem(_tsKey(key)) || '0', 10) || 0;
+}
+function _markDirty(key, yes) {
+  if (yes) localStorage.setItem(_dirtyKey(key), '1');
+  else localStorage.removeItem(_dirtyKey(key));
+}
+function _isDirty(key) { return localStorage.getItem(_dirtyKey(key)) === '1'; }
+
 function _remotePayload(key, value, ts) {
-  return { key: key, value: { __dekori_ts: ts, __dekori_val: value } };
+  return { key: key, value: { __dekori_ts: Number(ts) || Date.now(), __dekori_val: value } };
 }
 
-/*
- * ذخیره‌سازی واقعی روی Supabase.
- * علاوه بر supabase-js، یک fetch با keepalive هم برای زمان بستن/تعویض
- * صفحه استفاده می‌شود تا سفارش یا تغییر آخر صفحه در حال خروج گم نشود.
- */
-function _writeRemote(key, value, ts, useKeepalive, attempt) {
-  if (!supabaseClient) return Promise.resolve(false);
-  attempt = attempt || 1;
-  var maxAttempts = 4;
+function _unwrapRemote(rawValue) {
+  if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue) &&
+      Object.prototype.hasOwnProperty.call(rawValue, '__dekori_ts') &&
+      Object.prototype.hasOwnProperty.call(rawValue, '__dekori_val')) {
+    return { ts: Number(rawValue.__dekori_ts) || 0, val: rawValue.__dekori_val };
+  }
+  // رکوردهای قدیمی بدون timestamp: سرور منبع اصلی است.
+  return { ts: 0, val: rawValue };
+}
 
+function _writeRemote(key, value, ts, useKeepalive, attempt) {
+  if (!supabaseClient || SHARED_KEYS.indexOf(key) === -1) return Promise.resolve(false);
+  attempt = attempt || 1;
   var payload = _remotePayload(key, value, ts);
 
-  return supabaseClient
-    .from('app_data')
-    .upsert(payload, { onConflict: 'key' })
-    .then(function(res) {
-      if (res.error) {
-        console.warn('Supabase save error (' + key + ') attempt ' + attempt + ':', res.error.message);
-        if (attempt < maxAttempts) {
-          return new Promise(function(resolve) {
-            setTimeout(function() {
-              resolve(_writeRemote(key, value, ts, useKeepalive, attempt + 1));
-            }, 600 * attempt);
-          });
-        }
-        if (useKeepalive) _keepaliveWrite(payload);
-        return false;
-      }
-      if (attempt > 1) console.log('Supabase save OK (' + key + ') after ' + attempt + ' attempts');
-      return true;
-    })
-    .catch(function(err) {
-      console.warn('Supabase network error (' + key + ') attempt ' + attempt + ':', err && err.message ? err.message : err);
-      if (attempt < maxAttempts) {
+  return supabaseClient.from('app_data').upsert(payload, { onConflict: 'key' }).then(function(res) {
+    if (res.error) {
+      console.warn('Supabase save error [' + key + ']:', res.error.message);
+      if (attempt < 5) {
         return new Promise(function(resolve) {
-          setTimeout(function() {
-            resolve(_writeRemote(key, value, ts, useKeepalive, attempt + 1));
-          }, 700 * attempt);
+          setTimeout(function() { resolve(_writeRemote(key, value, ts, useKeepalive, attempt + 1)); }, attempt * 700);
         });
       }
-      // last resort: keepalive fetch (sometimes survives flaky network)
-      _keepaliveWrite(payload);
+      if (useKeepalive) _keepaliveWrite(payload);
       return false;
-    });
+    }
+    localStorage.setItem(_tsKey(key), String(ts));
+    _markDirty(key, false);
+    return true;
+  }).catch(function(err) {
+    console.warn('Supabase network error [' + key + ']:', err);
+    if (attempt < 5) {
+      return new Promise(function(resolve) {
+        setTimeout(function() { resolve(_writeRemote(key, value, ts, useKeepalive, attempt + 1)); }, attempt * 700);
+      });
+    }
+    if (useKeepalive) _keepaliveWrite(payload);
+    return false;
+  });
 }
 
 function _keepaliveWrite(payload) {
   try {
-    var url = SUPABASE_URL + '/rest/v1/app_data?on_conflict=key';
-    fetch(url, {
-      method: 'POST',
-      keepalive: true,
+    fetch(SUPABASE_URL + '/rest/v1/app_data?on_conflict=key', {
+      method: 'POST', keepalive: true,
       headers: {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
@@ -125,23 +132,21 @@ function _keepaliveWrite(payload) {
 }
 
 function _queueRemoteWrite(key, value, ts) {
-  if (!supabaseClient || SHARED_KEYS.indexOf(key) === -1) return;
-
+  if (!supabaseClient || SHARED_KEYS.indexOf(key) === -1) return Promise.resolve(false);
   _dekoriWriteQueue[key] = { value: value, ts: ts };
-
   clearTimeout(_dekoriWriteTimers[key]);
-  _dekoriWriteTimers[key] = setTimeout(function() {
-    _flushRemoteWrite(key);
-  }, 80);
+  return new Promise(function(resolve) {
+    _dekoriWriteTimers[key] = setTimeout(function() {
+      _flushRemoteWrite(key).then(resolve);
+    }, 120);
+  });
 }
 
 function _flushRemoteWrite(key) {
   var item = _dekoriWriteQueue[key];
   if (!item) return Promise.resolve(true);
   delete _dekoriWriteQueue[key];
-
-  return _writeRemote(key, item.value, item.ts, false).then(function(ok) {
-    // اگر در فاصله‌ی ارسال، تغییر جدیدتری ثبت شده، آن را هم بفرست.
+  return _writeRemote(key, item.value, item.ts, true).then(function(ok) {
     var newer = _dekoriWriteQueue[key];
     if (newer && newer.ts > item.ts) return _flushRemoteWrite(key);
     return ok;
@@ -149,206 +154,167 @@ function _flushRemoteWrite(key) {
 }
 
 function flushPendingWrites() {
-  var keys = Object.keys(_dekoriWriteQueue);
-  if (!keys.length) return;
-
-  keys.forEach(function(key) {
+  Object.keys(_dekoriWriteQueue).forEach(function(key) {
     var item = _dekoriWriteQueue[key];
     if (!item) return;
     delete _dekoriWriteQueue[key];
     _keepaliveWrite(_remotePayload(key, item.value, item.ts));
   });
 }
-
-// مهم: سفارش‌ها و تغییرات هنگام خروج از صفحه هم ارسال می‌شوند.
 window.addEventListener('pagehide', flushPendingWrites);
 window.addEventListener('beforeunload', flushPendingWrites);
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'hidden') flushPendingWrites();
 });
 window.addEventListener('online', function() {
-  Object.keys(_dekoriWriteQueue).forEach(_flushRemoteWrite);
+  Object.keys(_dekoriWriteQueue).forEach(function(key) { _flushRemoteWrite(key); });
 });
 
+// هر تغییر مشترک ابتدا محلی نمایش داده می‌شود و همزمان به سرور ارسال می‌شود.
+// dirty flag باعث می‌شود یک تغییر ذخیره‌نشده با پاسخ قدیمی سرور جایگزین نشود.
 function setData(key, value) {
-  // ابتدا روی همین دستگاه ذخیره کن.
-  localStorage.setItem('dekori_' + key, JSON.stringify(value));
-
+  _setLocal(key, value);
   if (supabaseClient && SHARED_KEYS.indexOf(key) !== -1) {
     var ts = Date.now();
-    localStorage.setItem('dekori_ts_' + key, String(ts));
+    localStorage.setItem(_tsKey(key), String(ts));
+    _markDirty(key, true);
     _queueRemoteWrite(key, value, ts);
   }
 }
 
-function unwrapRemoteRow(rawValue) {
-  // Newer rows are wrapped as { __dekori_ts, __dekori_val } so we can compare
-  // freshness against the local copy. Older rows (written before this fix)
-  // are stored as the raw value with no timestamp — treat those as ts=0 so
-  // any locally-timestamped save always wins over them.
-  if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue) &&
-      Object.prototype.hasOwnProperty.call(rawValue, '__dekori_ts') &&
-      Object.prototype.hasOwnProperty.call(rawValue, '__dekori_val')) {
-    return { ts: rawValue.__dekori_ts || 0, val: rawValue.__dekori_val };
-  }
-  return { ts: 0, val: rawValue };
-}
-
-// Load all shared data from Supabase and update localStorage
-function loadFromSupabase(callback) {
-  if (!supabaseClient) {
-    if (callback) callback(false, false);
-    return;
-  }
-
-  supabaseClient
-    .from('app_data')
-    .select('key, value')
-    .then(function(res) {
-      if (res.error) {
-        console.warn('Supabase load error:', res.error.message);
-        if (callback) callback(false, false);
-        return;
-      }
-
-      var changed = false;
-      var remoteKeys = {};
-
-      if (res.data && res.data.length) {
-        res.data.forEach(function(row) {
-          if (!row.key || row.value === undefined || row.value === null) return;
-
-          remoteKeys[row.key] = true;
-          var remote = unwrapRemoteRow(row.value);
-          var localTsRaw = localStorage.getItem('dekori_ts_' + row.key);
-          var localTs = localTsRaw ? parseInt(localTsRaw, 10) : 0;
-
-          // اگر این دستگاه همین الان تغییر جدیدتری دارد، داده‌ی محلی را
-          // حفظ می‌کنیم و اجازه نمی‌دهیم یک پاسخ قدیمی آن را برگرداند.
-          if (remote.ts < localTs) return;
-
-          var newVal = JSON.stringify(remote.val);
-          var oldVal = localStorage.getItem('dekori_' + row.key);
-
-          if (oldVal !== newVal) {
-            localStorage.setItem('dekori_' + row.key, newVal);
-            changed = true;
-          }
-          localStorage.setItem('dekori_ts_' + row.key, String(remote.ts || 0));
-        });
-      }
-
-      // اگر سرور خالی است، فقط همان بار اول داده‌ی محلی را seed کن.
-      // در دستگاه‌های بعدی هیچ‌وقت به خاطر localStorage پیش‌فرض، سرور overwrite نمی‌شود.
-      if (!res.data || !res.data.length) {
-        console.log('Supabase app_data is empty; initial seed will be created.');
-        pushAllToSupabase();
-      }
-
-      console.log('Supabase sync loaded ' + ((res.data || []).length) + ' shared keys');
-      if (callback) callback(true, changed);
-    })
-    .catch(function(err) {
-      console.warn('Supabase load network error:', err);
-      if (callback) callback(false, false);
-    });
-}
-
-
-// ========== Live sync across all phones / computers ==========
-// Every shared change is pushed to Supabase. This listener immediately pulls
-// changes made on another device. A small polling fallback keeps sync working
-// even if Supabase Realtime is not enabled for app_data.
-function _applyRemoteRow(row) {
+function _applyRemoteRow(row, force) {
   if (!row || !row.key || row.value === undefined || row.value === null) return false;
   if (SHARED_KEYS.indexOf(row.key) === -1) return false;
 
-  var remote = unwrapRemoteRow(row.value);
-  var localTs = parseInt(localStorage.getItem('dekori_ts_' + row.key) || '0', 10) || 0;
+  var remote = _unwrapRemote(row.value);
+  var localTs = _getLocalTs(row.key);
+  var dirty = _isDirty(row.key);
 
-  // Never overwrite a newer local edit with an older server event.
-  if (remote.ts < localTs) return false;
+  // فقط تغییر واقعاً ذخیره‌نشده محلی از سرور قدیمی محافظت می‌شود.
+  // در غیر این صورت سرور همیشه منبع اصلی بین دستگاه‌هاست.
+  if (!force && dirty && localTs > remote.ts) return false;
 
   var newVal = JSON.stringify(remote.val);
-  var oldVal = localStorage.getItem('dekori_' + row.key);
+  var oldVal = localStorage.getItem(_localKey(row.key));
   if (oldVal === newVal) {
-    localStorage.setItem('dekori_ts_' + row.key, String(remote.ts || 0));
+    localStorage.setItem(_tsKey(row.key), String(remote.ts || 0));
+    if (remote.ts >= localTs) _markDirty(row.key, false);
     return false;
   }
 
-  localStorage.setItem('dekori_' + row.key, newVal);
-  localStorage.setItem('dekori_ts_' + row.key, String(remote.ts || 0));
+  _setLocal(row.key, remote.val);
+  localStorage.setItem(_tsKey(row.key), String(remote.ts || Date.now()));
+  _markDirty(row.key, false);
 
-  // Tell every page in this tab to redraw its UI.
   try {
-    window.dispatchEvent(new CustomEvent('dekori:data-sync', { detail: { key: row.key, value: remote.val } }));
+    window.dispatchEvent(new CustomEvent('dekori:data-sync', {
+      detail: { key: row.key, value: remote.val }
+    }));
   } catch (e) {}
   return true;
 }
 
+function loadFromSupabase(callback) {
+  if (!supabaseClient) {
+    console.warn('Supabase client is not available.');
+    if (callback) callback(false, false);
+    return;
+  }
+
+  supabaseClient.from('app_data').select('key,value').then(function(res) {
+    if (res.error) {
+      console.warn('Supabase load error:', res.error.message);
+      if (callback) callback(false, false);
+      return;
+    }
+
+    var rows = res.data || [];
+    var remoteMap = {};
+    rows.forEach(function(row) { if (row && row.key) remoteMap[row.key] = row; });
+    var changed = false;
+
+    // بسیار مهم: ابتدا داده‌های واقعی سرور را روی دستگاه اعمال می‌کنیم.
+    SHARED_KEYS.forEach(function(key) {
+      if (remoteMap[key]) {
+        if (_applyRemoteRow(remoteMap[key], false)) changed = true;
+      }
+    });
+
+    // فقط کلیدهایی که واقعاً در سرور وجود ندارند seed می‌شوند.
+    // بنابراین یک گوشی تازه هیچ‌وقت داده پیش‌فرض خودش را روی گوشی‌های دیگر تحمیل نمی‌کند.
+    var missing = SHARED_KEYS.filter(function(key) { return !remoteMap[key]; });
+    if (missing.length) {
+      var i = 0;
+      function seedNext() {
+        if (i >= missing.length) {
+          if (callback) callback(true, changed);
+          return;
+        }
+        var key = missing[i++];
+        var val = getData(key, null);
+        if (val === null) { seedNext(); return; }
+        var ts = Date.now();
+        _setLocal(key, val);
+        localStorage.setItem(_tsKey(key), String(ts));
+        _markDirty(key, true);
+        _writeRemote(key, val, ts, true).then(function(){ seedNext(); });
+      }
+      seedNext();
+      return;
+    }
+
+    if (callback) callback(true, changed);
+  }).catch(function(err) {
+    console.warn('Supabase network error:', err);
+    if (callback) callback(false, false);
+  });
+}
+
 function _refreshSharedKeyFromServer(key) {
   if (!supabaseClient || SHARED_KEYS.indexOf(key) === -1) return Promise.resolve(false);
-  return supabaseClient.from('app_data').select('key,value').eq('key', key).maybeSingle()
-    .then(function(res) {
-      if (res.error || !res.data) return false;
-      return _applyRemoteRow(res.data);
-    })
-    .catch(function() { return false; });
+  return supabaseClient.from('app_data').select('key,value').eq('key', key).maybeSingle().then(function(res) {
+    if (res.error || !res.data) return false;
+    return _applyRemoteRow(res.data, false);
+  }).catch(function(){ return false; });
 }
 
 function startLiveSync() {
   if (!supabaseClient || _dekoriRealtimeStarted) return;
   _dekoriRealtimeStarted = true;
 
-  // Instant cross-device updates through Supabase Realtime.
   try {
-    _dekoriRealtimeChannel = supabaseClient
-      .channel('dekori-app-data-live')
+    _dekoriRealtimeChannel = supabaseClient.channel('dekori-app-data-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_data' }, function(payload) {
-        if (payload.eventType === 'DELETE') return;
-        _applyRemoteRow(payload.new);
+        if (payload.eventType !== 'DELETE') _applyRemoteRow(payload.new, false);
       })
-      .subscribe(function(status) {
-        console.log('Dekori live sync:', status);
-      });
-  } catch (e) {
-    console.warn('Supabase Realtime unavailable:', e);
-  }
+      .subscribe(function(status) { console.log('Dekori live sync:', status); });
+  } catch (e) { console.warn('Realtime unavailable:', e); }
 
-  // Fallback: check the server every 3 seconds. This also recovers updates
-  // if Realtime is disabled/not configured for the table.
   clearInterval(_dekoriPollTimer);
   _dekoriPollTimer = setInterval(function() {
     if (document.visibilityState === 'hidden' || !navigator.onLine) return;
     SHARED_KEYS.forEach(function(key) { _refreshSharedKeyFromServer(key); });
-  }, 3000);
-
+  }, 2500);
 }
 
-// Always enable multi-tab localStorage sync (even without Supabase)
 (function setupStorageSync() {
   if (window._dekoriStorageListener) return;
   window._dekoriStorageListener = true;
-  window.addEventListener("storage", function(e) {
-    if (!e.key || e.key.indexOf("dekori_") !== 0) return;
-    if (e.key.indexOf("dekori_ts_") === 0) return;
-    var key = e.key.replace(/^dekori_/, "");
+  window.addEventListener('storage', function(e) {
+    if (!e.key || e.key.indexOf('dekori_') !== 0 || e.key.indexOf('dekori_ts_') === 0 || e.key.indexOf('dekori_dirty_') === 0) return;
+    var key = e.key.replace(/^dekori_/, '');
     if (SHARED_KEYS.indexOf(key) === -1) return;
     try {
-      var val = e.newValue ? JSON.parse(e.newValue) : null;
-      window.dispatchEvent(new CustomEvent("dekori:data-sync", { detail: { key: key, value: val } }));
+      window.dispatchEvent(new CustomEvent('dekori:data-sync', { detail: { key: key, value: e.newValue ? JSON.parse(e.newValue) : null } }));
     } catch (err) {}
   });
 })();
 
 function ensureDefaultsLocal() {
-  if (!localStorage.getItem('dekori_products')) {
-    localStorage.setItem('dekori_products', JSON.stringify(DEFAULT_PRODUCTS));
-  } else {
-    try {
-      var p = JSON.parse(localStorage.getItem('dekori_products'));
-      if (!Array.isArray(p)) localStorage.setItem('dekori_products', JSON.stringify(DEFAULT_PRODUCTS));
-    } catch(e) { localStorage.setItem('dekori_products', JSON.stringify(DEFAULT_PRODUCTS)); }
+  if (!localStorage.getItem('dekori_products')) localStorage.setItem('dekori_products', JSON.stringify(DEFAULT_PRODUCTS));
+  else {
+    try { if (!Array.isArray(JSON.parse(localStorage.getItem('dekori_products')))) localStorage.setItem('dekori_products', JSON.stringify(DEFAULT_PRODUCTS)); }
+    catch(e) { localStorage.setItem('dekori_products', JSON.stringify(DEFAULT_PRODUCTS)); }
   }
   if (!localStorage.getItem('dekori_settings')) localStorage.setItem('dekori_settings', JSON.stringify(DEFAULT_SETTINGS));
   if (!localStorage.getItem('dekori_categories')) localStorage.setItem('dekori_categories', JSON.stringify(DEFAULT_CATEGORIES));
@@ -362,85 +328,46 @@ function ensureDefaultsLocal() {
   if (!localStorage.getItem('dekori_qa')) localStorage.setItem('dekori_qa', JSON.stringify([]));
   if (!localStorage.getItem('dekori_customers')) localStorage.setItem('dekori_customers', JSON.stringify([]));
   if (!localStorage.getItem('dekori_orders')) localStorage.setItem('dekori_orders', JSON.stringify([]));
-
-  var pays = getData('payments', null);
-  if (!Array.isArray(pays) || !pays.length) {
-    localStorage.setItem('dekori_payments', JSON.stringify(DEFAULT_PAYMENT_GATEWAYS));
-  }
-
-  var plugs = getData('plugins', []);
-  if (!Array.isArray(plugs) || plugs.length < 250) {
-    localStorage.setItem('dekori_plugins', JSON.stringify(DEFAULT_PLUGINS));
-  }
+  if (!localStorage.getItem('dekori_payments')) localStorage.setItem('dekori_payments', JSON.stringify(DEFAULT_PAYMENT_GATEWAYS));
+  if (!localStorage.getItem('dekori_plugins')) localStorage.setItem('dekori_plugins', JSON.stringify(DEFAULT_PLUGINS));
 }
 
 function pushAllToSupabase() {
   if (!supabaseClient) return Promise.resolve(false);
-
-  // Sequential + retry-friendly so large keys (products with base64) have a better chance
   var keys = SHARED_KEYS.slice();
   var results = {};
-
-  function next(i) {
-    if (i >= keys.length) {
-      console.log('pushAllToSupabase finished', results);
-      return Promise.resolve(results);
-    }
-    var key = keys[i];
-    var val = getData(key, null);
-    if (val === null) return next(i + 1);
-
+  var i = 0;
+  function next() {
+    if (i >= keys.length) return Promise.resolve(results);
+    var key = keys[i++], val = getData(key, null);
+    if (val === null) return next();
     var ts = Date.now();
-    localStorage.setItem('dekori_ts_' + key, String(ts));
-    console.log('pushing', key, '...');
-
+    _markDirty(key, true);
     return _writeRemote(key, val, ts, true).then(function(ok) {
       results[key] = ok;
-      // small delay between keys to avoid HTTP/2 pressure
-      return new Promise(function(resolve) {
-        setTimeout(function() { resolve(next(i + 1)); }, 500);
-      });
+      return new Promise(function(resolve){ setTimeout(function(){ resolve(next()); }, 100); });
     });
   }
-
-  return next(0);
+  return next();
 }
 
-// این تابع برای صفحاتی که بعداً می‌خواهند مطمئن شوند داده روی سرور رفته است.
 window.dekoriSyncNow = function() {
-  var keys = Object.keys(_dekoriWriteQueue);
-  return Promise.all(keys.map(_flushRemoteWrite)).then(function() {
-    return true;
-  });
+  return Promise.all(Object.keys(_dekoriWriteQueue).map(function(key){ return _flushRemoteWrite(key); })).then(function(){ return true; });
 };
-
-// Force push everything with retries (use from Console when network is flaky)
 window.forcePushAll = function() {
   return pushAllToSupabase().then(function(res) {
-    var failed = Object.keys(res || {}).filter(function(k) { return !res[k]; });
-    if (failed.length) {
-      alert('بعضی کلیدها ارسال نشدند: ' + failed.join(', ') + '\nدوباره تلاش کن یا اینترنت را عوض کن');
-    } else {
-      alert('همه داده‌ها با موفقیت ارسال شدند ✅');
-    }
+    var failed = Object.keys(res || {}).filter(function(k){ return !res[k]; });
+    alert(failed.length ? 'این موارد ارسال نشدند: ' + failed.join(', ') : 'همه داده‌ها روی سرور ذخیره شدند ✅');
     return res;
   });
 };
 
-
 function initData() {
+  if (_dekoriBooting) return;
+  _dekoriBooting = true;
   ensureDefaultsLocal();
-  localStorage.setItem('dekori_initialized_v10', '1');
 
   loadFromSupabase(function(ok, changed) {
-    // اگر داده‌ی مشترک از سرور آمده، همان صفحه را یک بار تازه‌سازی می‌کنیم
-    // تا تمام بخش‌ها دقیقاً از نسخه‌ی مشترک استفاده کنند.
-    if (ok && changed && !sessionStorage.getItem('dekori_sb_reloaded_v10')) {
-      sessionStorage.setItem('dekori_sb_reloaded_v10', '1');
-      location.reload();
-      return;
-    }
-
     if (typeof applySettings === 'function') try { applySettings(); } catch(e) {}
     if (typeof renderCategories === 'function') try { renderCategories(); } catch(e) {}
     if (typeof renderProducts === 'function') try { renderProducts(); } catch(e) {}
