@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پشتیبانی و تیکت | دکوری آنلاین</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .ticket-page { min-height: 100vh; padding: 40px 20px 80px; background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 50%), var(--bg); }
+    .ticket-wrap { max-width: 720px; margin: 0 auto; }
+    .ticket-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 24px;
+    }
+    .ticket-card h1 { font-size: 1.5rem; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+    .ticket-card h1 i { color: var(--primary-light); }
+    .ticket-card .sub { color: var(--text-muted); margin-bottom: 24px; }
+    .success-box {
+      display: none; text-align: center; padding: 32px 20px;
+      background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 16px; margin-bottom: 20px;
+    }
+    .success-box.show { display: block; }
+    .success-box i { font-size: 2.5rem; color: #34d399; margin-bottom: 12px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; margin-bottom: 20px; font-size: 0.95rem; }
+    .back-link:hover { color: var(--primary-light); }
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .tab-btn {
+      flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text-muted); font-family: inherit; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+    }
+    .tab-btn.active { background: rgba(124,58,237,0.2); border-color: #7c3aed; color: #c4b5fd; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .ticket-item {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px 18px; margin-bottom: 12px; cursor: pointer; transition: border-color .2s;
+    }
+    .ticket-item:hover { border-color: #7c3aed; }
+    .ticket-item-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .ticket-item-id { font-family: monospace; color: #a78bfa; font-size: .9rem; }
+    .ticket-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: .75rem; font-weight: 600;
+    }
+    .ticket-badge.open { background: rgba(245,158,11,.2); color: #fbbf24; }
+    .ticket-badge.closed { background: rgba(16,185,129,.2); color: #34d399; }
+    .ticket-item-subject { font-weight: 600; margin-bottom: 4px; }
+    .ticket-item.unread { border-color: #f97316; box-shadow: 0 0 0 1px rgba(249,115,22,.25); }
+    .unread-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444; margin-left:6px; box-shadow:0 0 8px rgba(239,68,68,.6); }
+    .tab-btn .tab-badge { display:none; margin-right:6px; background:#ef4444; color:#fff; border-radius:50px; padding:1px 7px; font-size:.72rem; font-weight:800; }
+
+    .ticket-item-meta { font-size: .85rem; color: var(--text-muted); }
+    .ticket-detail {
+      display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+      font-size: .95rem; line-height: 1.8; color: #ccc;
+    }
+    .ticket-detail.show { display: block; }
+    .ticket-reply {
+      margin-top: 12px; padding: 12px; background: rgba(16,185,129,.1);
+      border-radius: 10px; border: 1px solid rgba(16,185,129,.25);
+    }
+    .lookup-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .lookup-row input { flex: 1; min-width: 180px; }
+    .empty-tickets { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .msg-thread { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+    .msg-bubble {
+      padding: 10px 14px; border-radius: 12px; max-width: 92%; font-size: .92rem; line-height: 1.7;
+    }
+    .msg-bubble.user {
+      background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      align-self: flex-start;
+    }
+    .msg-bubble.admin {
+      background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3);
+      align-self: flex-end;
+    }
+    .msg-meta { font-size: .75rem; color: var(--text-muted); margin-top: 4px; }
+    .reply-box { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .reply-box textarea { width: 100%; min-height: 70px; margin-bottom: 8px; }
+    .reply-box .btn { width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="ticket-page">
+    <div class="ticket-wrap">
+      <a href="index.html" class="back-link"><i class="fas fa-arrow-right"></i> بازگشت به فروشگاه</a>
+
+      <div class="tabs">
+        <button type="button" class="tab-btn active" data-tab="new">ارسال تیکت جدید</button>
+        <button type="button" class="tab-btn" data-tab="list">تیکت‌های من</button>
+      </div>
+
+      <div class="ticket-card">
+        <!-- NEW TICKET -->
+        <div class="tab-panel active" id="panel-new">
+          <div id="ticketForm">
+            <h1><i class="fas fa-headset"></i> ارسال تیکت پشتیبانی</h1>
+            <p class="sub">سوال یا مشکلت رو بنویس — از بخش «تیکت‌های من» هم می‌تونی پیگیری کنی</p>
+            <div class="form-group">
+              <label>نام شما *</label>
+              <input type="text" class="form-control" id="tName" placeholder="نام و نام خانوادگی">
+            </div>
+            <div class="form-group">
+              <label>ایمیل یا شماره تماس *</label>
+              <input type="text" class="form-control" id="tContact" placeholder="email@example.com یا ۰۹۱۲...">
+            </div>
+            <div class="form-group">
+              <label>موضوع *</label>
+              <select class="form-control" id="tSubject">
+                <option value="سوال درباره محصول">سوال درباره محصول</option>
+                <option value="مشکل سفارش">مشکل سفارش</option>
+                <option value="همکاری / فروشنده شدن">همکاری / فروشنده شدن</option>
+                <option value="پیشنهاد">پیشنهاد</option>
+                <option value="سایر">سایر</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>پیام شما *</label>
+              <textarea class="form-control" id="tMessage" placeholder="توضیح کامل..." rows="5"></textarea>
+            </div>
+            <button type="button" class="btn btn-primary btn-block" id="sendTicket" style="padding:14px;font-size:1rem">
+              <i class="fas fa-paper-plane"></i> ارسال تیکت
+            </button>
+          </div>
+          <div class="success-box" id="ticketSuccess">
+            <i class="fas fa-check-circle"></i>
+            <h2>تیکت شما ثبت شد!</h2>
+            <p style="color:var(--text-muted);margin:12px 0 16px">شماره پیگیری: <strong id="ticketId" style="color:var(--primary-light)"></strong></p>
+            <button type="button" class="btn btn-primary" id="goToMyTickets">مشاهده تیکت‌های من</button>
+          </div>
+        </div>
+
+        <!-- MY TICKETS -->
+        <div class="tab-panel" id="panel-list">
+          <h1><i class="fas fa-ticket-alt"></i> تیکت‌های من</h1>
+          <p class="sub">با ایمیل یا شماره‌ای که موقع ارسال زدی، تیکت‌هات رو ببین</p>
+          <div class="lookup-row">
+            <input type="text" class="form-control" id="lookupContact" placeholder="ایمیل یا شماره تماس">
+            <button type="button" class="btn btn-primary" id="lookupBtn"><i class="fas fa-search"></i> جستجو</button>
+            <button type="button" class="btn btn-outline" id="showAllBtn">همه (این مرورگر)</button>
+          </div>
+          <div id="ticketsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/data.js"></script>
+  <script>
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(function(b) {
+        b.classList.toggle('active', b.getAttribute('data-tab') === name);
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(p) {
+        p.classList.toggle('active', p.id === 'panel-' + name);
+      });
+      if (name === 'list') {
+        var saved = localStorage.getItem('dekori_last_ticket_contact') || '';
+        if (saved) {
+          document.getElementById('lookupContact').value = saved;
+          renderTickets(saved);
+        } else {
+          renderTickets(null);
+        }
+      }
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        switchTab(btn.getAttribute('data-tab'));
+      });
+    });
+
+    function statusLabel(s) {
+      return s === 'closed' ? 'بسته' : 'باز';
+    }
+
+    // Normalize old tickets (message/reply) to messages[] array
+    function normalizeTicket(t) {
+      if (!t) return t;
+      if (Array.isArray(t.messages) && t.messages.length) return t;
+      var msgs = [];
+      if (t.message) {
+        msgs.push({ from: 'user', text: t.message, at: t.createdAt || Date.now() });
+      }
+      if (t.reply) {
+        msgs.push({ from: 'admin', text: t.reply, at: (t.createdAt || Date.now()) + 1 });
+      }
+      t.messages = msgs;
+      return t;
+    }
+
+    function getTicketMessages(t) {
+      t = normalizeTicket(t);
+      return t.messages || [];
+    }
+
+    function renderTickets(contactFilter) {
+      var tickets = getData('tickets', []);
+      if (!Array.isArray(tickets)) tickets = [];
+      // persist normalized structure
+      var changed = false;
+      tickets.forEach(function(t) {
+        if (!Array.isArray(t.messages) || !t.messages.length) {
+          normalizeTicket(t);
+          changed = true;
+        }
+      });
+      if (changed) setData('tickets', tickets);
+
+      var list = tickets;
+      if (contactFilter) {
+        var q = contactFilter.trim().toLowerCase();
+        list = tickets.filter(function(t) {
+          var c = (t.contact || t.customerPhone || t.phone || '').toLowerCase();
+          var n = (t.name || t.customerName || '').toLowerCase();
+          var id = (t.customerId || '').toLowerCase();
+          return c.indexOf(q) !== -1 || n.indexOf(q) !== -1 || id.indexOf(q) !== -1 || q.indexOf(c) !== -1;
+        });
+      }
+      // also show tickets for logged-in customer
+      try {
+        var sess = JSON.parse(localStorage.getItem('dekori_customer_session') || 'null');
+        if (sess && (sess.phone || sess.id)) {
+          var phone = (sess.phone || '').toLowerCase();
+          var sid = (sess.id || '').toLowerCase();
+          var mine = tickets.filter(function(t) {
+            return (t.customerId && t.customerId.toLowerCase() === sid) ||
+              (t.customerPhone && t.customerPhone.toLowerCase() === phone) ||
+              (t.contact && t.contact.toLowerCase() === phone);
+          });
+          if (!contactFilter) list = mine.length ? mine : list;
+          else {
+            // merge unique
+            var ids = {};
+            list.forEach(function(t){ ids[t.id]=true; });
+            mine.forEach(function(t){ if(!ids[t.id]) list.push(t); });
+          }
+        }
+      } catch(e) {}
+      var box = document.getElementById('ticketsList');
+      if (!list.length) {
+        box.innerHTML = '<div class="empty-tickets"><i class="fas fa-inbox" style="font-size:2rem;opacity:.4;display:block;margin-bottom:12px"></i>تیکتی یافت نشد</div>';
+        return;
+      }
+      box.innerHTML = list.map(function(t) {
+        var date = new Date(t.createdAt).toLocaleDateString('fa-IR');
+        var st = t.status === 'closed' ? 'closed' : 'open';
+        var msgs = getTicketMessages(t);
+        var threadHtml = '<div class="msg-thread">';
+        msgs.forEach(function(m) {
+          var who = m.from === 'admin' ? 'پشتیبانی' : 'شما';
+          var d = new Date(m.at || t.createdAt).toLocaleString('fa-IR');
+          threadHtml += '<div class="msg-bubble ' + (m.from === 'admin' ? 'admin' : 'user') + '">' +
+            (m.text || '') +
+            '<div class="msg-meta">' + who + ' — ' + d + '</div></div>';
+        });
+        if (!msgs.length) threadHtml += '<p style="color:var(--text-muted);font-size:.85rem">هنوز پیامی ثبت نشده</p>';
+        threadHtml += '</div>';
+
+        var replyForm = '';
+        if (t.status !== 'closed') {
+          replyForm = '<div class="reply-box" onclick="event.stopPropagation()">' +
+            '<textarea class="form-control" id="reply-' + t.id + '" placeholder="پیام جدید بنویسید..."></textarea>' +
+            '<button type="button" class="btn btn-primary" data-reply-id="' + t.id + '"><i class="fas fa-paper-plane"></i> ارسال پیام</button>' +
+            '</div>';
+        } else {
+          replyForm = '<p style="color:#34d399;margin-top:10px;font-size:.85rem"><i class="fas fa-lock"></i> این تیکت بسته شده و امکان ارسال پیام وجود ندارد</p>';
+        }
+
+        var isUnread = !!t.unreadCustomer || (msgs.length && msgs[msgs.length-1].from === 'admin' && t.status !== 'closed');
+        return '<div class="ticket-item' + (isUnread ? ' unread' : '') + '" data-id="' + t.id + '">' +
+          '<div class="ticket-item-head">' +
+            '<span class="ticket-item-id">' + t.id + (isUnread ? ' <span class="unread-dot"></span>' : '') + '</span>' +
+            '<span class="ticket-badge ' + st + '">' + statusLabel(t.status) + '</span>' +
+          '</div>' +
+          '<div class="ticket-item-subject">' + (t.subject || '') + (isUnread ? ' <span style="color:#f97316;font-size:.8rem">جدید</span>' : '') + '</div>' +
+          '<div class="ticket-item-meta">' + (t.name || '') + ' — ' + (t.contact || '') + ' — ' + date + '</div>' +
+          '<div class="ticket-detail" id="tdetail-' + t.id + '">' +
+            threadHtml + replyForm +
+          '</div></div>';
+      }).join('');
+
+      box.querySelectorAll('.ticket-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+          if (e.target.closest('.reply-box')) return;
+          var d = item.querySelector('.ticket-detail');
+          if (d) d.classList.toggle('show');
+          var id = item.getAttribute('data-id');
+          var tickets2 = getData('tickets', []);
+          var tk = tickets2.find(function(x){ return x.id === id; });
+          if (tk && tk.unreadCustomer) {
+            tk.unreadCustomer = false;
+            setData('tickets', tickets2);
+            item.classList.remove('unread');
+            var dot = item.querySelector('.unread-dot');
+            if (dot) dot.remove();
+          }
+        });
+      });
+
+      box.querySelectorAll('[data-reply-id]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var id = btn.getAttribute('data-reply-id');
+          var ta = document.getElementById('reply-' + id);
+          var text = ta ? ta.value.trim() : '';
+          if (!text) { alert('لطفاً پیام را بنویسید'); return; }
+          var tickets = getData('tickets', []);
+          var t = tickets.find(function(x) { return x.id === id; });
+          if (!t) return;
+          if (t.status === 'closed') { alert('این تیکت بسته شده است'); return; }
+          normalizeTicket(t);
+          t.messages.push({ from: 'user', text: text, at: Date.now() });
+          t.unreadAdmin = true;
+          t.unreadCustomer = false;
+          // keep legacy fields in sync for admin
+          t.message = t.messages.filter(function(m){ return m.from === 'user'; }).map(function(m){ return m.text; }).join('\n---\n');
+          setData('tickets', tickets);
+          var filter = document.getElementById('lookupContact').value.trim() || null;
+          renderTickets(filter);
+          // re-open the same ticket detail
+          setTimeout(function() {
+            var el = document.querySelector('.ticket-item[data-id="' + id + '"] .ticket-detail');
+            if (el) el.classList.add('show');
+          }, 50);
+        });
+      });
+    }
+
+    document.getElementById('sendTicket').addEventListener('click', function() {
+      var name = document.getElementById('tName').value.trim();
+      var contact = document.getElementById('tContact').value.trim();
+      var subject = document.getElementById('tSubject').value;
+      var message = document.getElementById('tMessage').value.trim();
+      if (!name || !contact || !message) {
+        alert('لطفاً همه فیلدهای ستاره‌دار را پر کنید');
+        return;
+      }
+      var ticket = {
+        id: 'TKT-' + Date.now().toString(36).toUpperCase(),
+        name: name,
+        contact: contact,
+        subject: subject,
+        message: message,
+        status: 'open',
+        createdAt: Date.now(), unreadAdmin: true, unreadCustomer: false, createdBy: 'user',
+        reply: '',
+        messages: [{ from: 'user', text: message, at: Date.now() }]
+      };
+      var tickets = getData('tickets', []);
+      tickets.unshift(ticket);
+      setData('tickets', tickets);
+      localStorage.setItem('dekori_last_ticket_contact', contact);
+
+      document.getElementById('ticketForm').style.display = 'none';
+      document.getElementById('ticketId').textContent = ticket.id;
+      document.getElementById('ticketSuccess').classList.add('show');
+    });
+
+    document.getElementById('goToMyTickets').addEventListener('click', function() {
+      document.getElementById('ticketSuccess').classList.remove('show');
+      document.getElementById('ticketForm').style.display = 'block';
+      document.getElementById('tMessage').value = '';
+      switchTab('list');
+    });
+
+    document.getElementById('lookupBtn').addEventListener('click', function() {
+      var c = document.getElementById('lookupContact').value.trim();
+      if (!c) { alert('ایمیل یا شماره را وارد کنید'); return; }
+      localStorage.setItem('dekori_last_ticket_contact', c);
+      renderTickets(c);
+    });
+
+    document.getElementById('showAllBtn').addEventListener('click', function() {
+      document.getElementById('lookupContact').value = '';
+      renderTickets(null);
+    });
+
+    // Live UI refresh when another browser updates tickets
+    window.addEventListener('dekori:data-sync', function(e) {
+      if (e && e.detail && e.detail.key === 'tickets') {
+        var filter = document.getElementById('lookupContact') ? document.getElementById('lookupContact').value.trim() : null;
+        renderTickets(filter || null);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پنل فروشنده | دکوری آنلاین</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .preview-img {
+      width: 120px; height: 120px; object-fit: cover; border-radius: 12px;
+      border: 1px solid var(--border); margin-top: 10px; display: none;
+    }
+    .preview-img.show { display: block; }
+    @media(max-width:600px){
+      #pPhotosBox{grid-template-columns:1fr!important}
+      .variant-value-row{grid-template-columns:1fr!important}
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><i class="fas fa-store"></i> <span id="sellerName">فروشنده</span></div>
+      <nav class="sidebar-nav">
+        <a href="#" class="active" data-tab="myproducts"><i class="fas fa-box"></i> محصولات من</a>
+        <a href="#" data-tab="add"><i class="fas fa-plus-circle"></i> افزودن محصول</a>
+        <a href="#" data-tab="orders"><i class="fas fa-shopping-cart"></i> سفارش‌ها</a>
+        <a href="#" data-tab="reviews"><i class="fas fa-star"></i> نظرات</a>
+        <a href="../index.html" target="_blank"><i class="fas fa-external-link-alt"></i> مشاهده سایت</a>
+        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> خروج</a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <!-- My Products -->
+      <div class="tab-content active" id="tab-myproducts">
+        <h1 class="page-title">محصولات من</h1>
+        <div class="dashboard-cards" style="margin-bottom:28px">
+          <div class="dash-card">
+            <h3>تعداد محصولات</h3>
+            <div class="value" id="myProductCount">0</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>تصویر</th>
+                <th>نام</th>
+                <th>دسته‌بندی</th>
+                <th>قیمت</th>
+                <th>موجودی</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="myProductsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Add Product -->
+      <div class="tab-content" id="tab-add">
+        <h1 class="page-title">افزودن محصول جدید</h1>
+        <div class="settings-card" style="max-width:600px">
+          <div class="form-group">
+            <label>نام محصول *</label>
+            <input type="text" class="form-control" id="pTitle" placeholder="مثال: اکشن فیگور اسپایدرمن">
+          </div>
+          <div class="form-group">
+            <label>کد محصول (SKU)</label>
+            <input type="text" class="form-control" id="pCode" placeholder="مثال: AF-SP-001 — برای جستجو با کد">
+          </div>
+          <div class="form-group">
+            <label>دسته‌بندی *</label>
+            <select class="form-control" id="pCategory"></select>
+          </div>
+          <div class="form-group">
+            <label>قیمت (تومان) *</label>
+            <input type="number" class="form-control" id="pPrice" placeholder="مثلاً 1500000" min="0">
+          </div>
+          <div class="form-group">
+            <label>موجودی *</label>
+            <input type="number" class="form-control" id="pStock" placeholder="تعداد" min="0" value="1">
+          </div>
+          <div class="form-group">
+            <label>تصاویر محصول * <span style="font-size:.78rem;color:var(--text-muted)">حداقل ۱ و حداکثر ۴ عکس</span></label>
+            <div id="pPhotosBox" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+              <div class="product-photo-slot" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+                <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+                  <i class="fas fa-image"></i> عکس ۱
+                  <input type="file" class="pPhotoFile" accept="image/*" style="display:none">
+                </label>
+                <img class="pPhotoPreview" alt="پیش‌نمایش عکس ۱" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+              </div>
+              <div class="product-photo-slot" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+                <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+                  <i class="fas fa-image"></i> عکس ۲
+                  <input type="file" class="pPhotoFile" accept="image/*" style="display:none">
+                </label>
+                <img class="pPhotoPreview" alt="پیش‌نمایش عکس ۲" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+              </div>
+              <div class="product-photo-slot" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+                <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+                  <i class="fas fa-image"></i> عکس ۳
+                  <input type="file" class="pPhotoFile" accept="image/*" style="display:none">
+                </label>
+                <img class="pPhotoPreview" alt="پیش‌نمایش عکس ۳" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+              </div>
+              <div class="product-photo-slot" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+                <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+                  <i class="fas fa-image"></i> عکس ۴
+                  <input type="file" class="pPhotoFile" accept="image/*" style="display:none">
+                </label>
+                <img class="pPhotoPreview" alt="پیش‌نمایش عکس ۴" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+              </div>
+            </div>
+            <input type="text" class="form-control" id="pImage" placeholder="یا آدرس تصویر اصلی محصول" style="margin-top:10px">
+            <div id="pImageHint" style="font-size:.8rem;color:var(--text-muted);margin-top:6px">عکس‌ها مستقیماً داخل فرم ثبت محصول انتخاب می‌شوند.</div>
+          </div>
+          <div class="form-group">
+            <label style="display:flex;<div class="form-group">
+            <label style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <span>توضیحات</span>
+              <button type="button" class="btn btn-outline" id="genDescBtn" style="font-size:.78rem;padding:6px 10px;white-space:nowrap"><i class="fas fa-wand-magic-sparkles"></i> تولید با AI</button>
+            </label>
+            <textarea class="form-control" id="pDesc" placeholder="توضیحات محصول..."></textarea>
+            <div id="genDescHint" style="font-size:.78rem;color:var(--text-muted);margin-top:6px;display:none"></div>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="pFeatured"> محصول ویژه (نمایش بج ویژه)
+            </label>
+          </div>
+          <div class="form-group" style="border-top:1px solid var(--border);padding-top:16px;margin-top:8px">
+            <label>
+              <input type="checkbox" id="pVariantsEnabled"> فعال کردن گزینه‌ها (رنگ، اندازه و ...)
+            </label>
+            <p style="font-size:.8rem;color:var(--text-muted);margin:6px 0 12px">اختیاری — اگر فعال باشد خریدار قبل از افزودن به سبد باید گزینه را انتخاب کند</p>
+            <div id="pVariantsBox" style="display:none">
+              <div id="pVariantGroups"></div>
+              <button type="button" class="btn btn-outline" id="addVariantGroupBtn" style="margin-top:8px;font-size:.85rem">
+                <i class="fas fa-plus"></i> افزودن گروه گزینه (مثلاً رنگ)
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="saveProductBtn"><i class="fas fa-check"></i> ثبت محصول</button>
+          <span id="productSaved" style="margin-right:16px;color:#34d399;display:none">✓ محصول ثبت شد</span>
+        </div>
+      </div>
+
+      <!-- Orders -->
+      <div class="tab-content" id="tab-orders">
+        <h1 class="page-title">سفارش‌های محصولات من</h1>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>شماره</th>
+                <th>خریدار</th>
+                <th>موبایل</th>
+                <th>اقلام من</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="sellerOrdersTable"></tbody>
+          </table>
+        </div>
+        <div id="sellerOrderDetail" style="display:none;margin-top:20px" class="settings-card"></div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="tab-content" id="tab-reviews">
+        <h1 class="page-title">نظرات محصولات من</h1>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>محصول</th>
+                <th>نام</th>
+                <th>امتیاز</th>
+                <th>نظر</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="sellerReviewsTable"></tbody>
+          </table>
+        </div>
+        <div id="sellerReviewDetail" style="display:none;margin-top:20px" class="settings-card"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content" style="max-width:560px;padding:32px;max-height:90vh;overflow-y:auto">
+      <button class="modal-close" id="closeEditModal"><i class="fas fa-times"></i></button>
+      <h2 style="margin-bottom:24px">ویرایش محصول</h2>
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label>نام محصول</label>
+        <input type="text" class="form-control" id="editTitle">
+      </div>
+      <div class="form-group">
+        <label>کد محصول (SKU)</label>
+        <input type="text" class="form-control" id="editCode" placeholder="مثال: AF-SP-001">
+      </div>
+      <div class="form-group">
+        <label>دسته‌بندی</label>
+        <select class="form-control" id="editCategory"></select>
+      </div>
+      <div class="form-group">
+        <label>قیمت</label>
+        <input type="number" class="form-control" id="editPrice">
+      </div>
+      <div class="form-group">
+        <label>موجودی</label>
+        <input type="number" class="form-control" id="editStock">
+      </div>
+      <div class="form-group">
+        <label>تصاویر محصول <span style="font-size:.78rem;color:var(--text-muted)">تا ۴ عکس — می‌توانی عکس‌ها را عوض کنی</span></label>
+        <div id="editPhotosBox" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <div class="product-photo-slot edit-photo-slot" data-index="0" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+            <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+              <i class="fas fa-image"></i> عکس 1
+              <input type="file" class="editPhotoFile" accept="image/*" style="display:none">
+            </label>
+            <img class="editPhotoPreview" alt="پیش‌نمایش عکس 1" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+            <button type="button" class="btn btn-outline editPhotoClear" style="display:none;width:100%;margin-top:6px;font-size:.75rem">حذف عکس</button>
+          </div>
+          <div class="product-photo-slot edit-photo-slot" data-index="1" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+            <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+              <i class="fas fa-image"></i> عکس 2
+              <input type="file" class="editPhotoFile" accept="image/*" style="display:none">
+            </label>
+            <img class="editPhotoPreview" alt="پیش‌نمایش عکس 2" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+            <button type="button" class="btn btn-outline editPhotoClear" style="display:none;width:100%;margin-top:6px;font-size:.75rem">حذف عکس</button>
+          </div>
+          <div class="product-photo-slot edit-photo-slot" data-index="2" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+            <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+              <i class="fas fa-image"></i> عکس 3
+              <input type="file" class="editPhotoFile" accept="image/*" style="display:none">
+            </label>
+            <img class="editPhotoPreview" alt="پیش‌نمایش عکس 3" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+            <button type="button" class="btn btn-outline editPhotoClear" style="display:none;width:100%;margin-top:6px;font-size:.75rem">حذف عکس</button>
+          </div>
+          <div class="product-photo-slot edit-photo-slot" data-index="3" style="border:1px dashed var(--border);border-radius:12px;padding:10px">
+            <label class="btn btn-outline" style="cursor:pointer;width:100%;box-sizing:border-box">
+              <i class="fas fa-image"></i> عکس 4
+              <input type="file" class="editPhotoFile" accept="image/*" style="display:none">
+            </label>
+            <img class="editPhotoPreview" alt="پیش‌نمایش عکس 4" style="display:none;width:100%;height:100px;object-fit:cover;border-radius:9px;margin-top:8px">
+            <button type="button" class="btn btn-outline editPhotoClear" style="display:none;width:100%;margin-top:6px;font-size:.75rem">حذف عکس</button>
+          </div>
+        </div>
+        <input type="text" class="form-control" id="editImage" placeholder="یا آدرس تصویر اصلی محصول" style="margin-top:10px">
+        <div id="editImageHint" style="font-size:.8rem;color:var(--text-muted);margin-top:6px">عکس اول به عنوان عکس اصلی محصول نمایش داده می‌شود.</div>
+      </div>
+      <div class="form-group">
+        <label>توضیحات</label>
+        <textarea class="form-control" id="editDesc"></textarea>
+      </div>
+      <div class="form-group" style="border-top:1px solid var(--border);padding-top:16px">
+        <label>
+          <input type="checkbox" id="editVariantsEnabled"> فعال کردن گزینه‌ها (رنگ، اندازه و ...)
+        </label>
+        <div id="editVariantsBox" style="display:none;margin-top:12px">
+          <div id="editVariantGroups"></div>
+          <button type="button" class="btn btn-outline" id="editAddVariantGroupBtn" style="margin-top:8px;font-size:.85rem">
+            <i class="fas fa-plus"></i> افزودن گروه گزینه
+          </button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="updateProductBtn">ذخیره تغییرات</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/seller.js"></script>
+</body>
+</html>

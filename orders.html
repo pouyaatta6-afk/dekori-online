@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پیگیری سفارش | دکوری آنلاین</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .order-head { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .order-id { font-family:monospace; color:#a78bfa; font-weight:600; }
+    .track-bar {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin: 24px 0 8px; position: relative; padding: 0 4px;
+    }
+    .track-bar::before {
+      content:''; position:absolute; top:14px; right:12%; left:12%; height:4px;
+      background: #2a2a3a; border-radius: 4px; z-index:0;
+    }
+    .track-fill {
+      position:absolute; top:14px; right:12%; height:4px; border-radius:4px; z-index:1;
+      background: linear-gradient(90deg, #7c3aed, #34d399); transition: width .4s;
+    }
+    .track-step { position:relative; z-index:2; text-align:center; flex:1; }
+    .track-dot {
+      width:28px; height:28px; border-radius:50%; margin:0 auto 8px;
+      background:#2a2a3a; border:3px solid #3d3d55; display:flex; align-items:center;
+      justify-content:center; font-size:.7rem; color:#888;
+    }
+    .track-step.done .track-dot { background:#7c3aed; border-color:#a78bfa; color:#fff; }
+    .track-step.active .track-dot { background:#34d399; border-color:#6ee7b7; color:#fff; box-shadow:0 0 12px rgba(52,211,153,.4); }
+    .track-label { font-size:.75rem; color:var(--text-muted); }
+    .track-step.done .track-label, .track-step.active .track-label { color:#c4b5fd; }
+  </style>
+</head>
+<body>
+  <div class="ticket-page">
+    <div class="ticket-wrap" style="max-width:720px">
+      <a href="index.html" class="back-link"><i class="fas fa-arrow-right"></i> بازگشت به فروشگاه</a>
+      <div class="ticket-card">
+        <h1 style="font-size:1.5rem;margin-bottom:8px"><i class="fas fa-truck" style="color:var(--primary-light)"></i> پیگیری سفارش‌ها</h1>
+        <p class="sub" style="color:var(--text-muted);margin-bottom:20px">سفارش‌های شما با وضعیت لحظه‌ای نمایش داده می‌شود</p>
+        <div id="ordersList"></div>
+        <div id="ordersEmpty" class="empty-tickets" style="display:none">
+          <i class="fas fa-box-open" style="font-size:2rem;opacity:.4;display:block;margin-bottom:12px"></i>
+          سفارشی یافت نشد. ابتدا وارد شوید یا خرید کنید.
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/data.js"></script>
+  <script>
+    var STATUS_STEPS = [
+      { key: 'awaiting_payment', label: 'منتظر پرداخت' },
+      { key: 'pending', label: 'ثبت شد' },
+      { key: 'preparing', label: 'آماده‌سازی' },
+      { key: 'shipping', label: 'ارسال' },
+      { key: 'delivered', label: 'تحویل' },
+      { key: 'cancelled', label: 'لغو شده' }
+    ];
+    function statusIndex(s) {
+      var i = STATUS_STEPS.findIndex(function(x) { return x.key === s; });
+      return i < 0 ? 1 : i;
+    }
+    function cancelOrder(orderId) {
+      if (!confirm('آیا از لغو این سفارش مطمئن هستید؟')) return;
+      var all = getData('orders', []);
+      var o = all.find(function(x) { return x.id === orderId; });
+      if (!o) return;
+      // بعد از «ثبت شد» لغو برای مشتری قفل است.
+      // فقط سفارش‌هایی که هنوز در مرحله «در انتظار پرداخت» هستند قابل لغو هستند.
+      if (o.status !== 'awaiting_payment') {
+        alert('بعد از ثبت شدن سفارش، لغو آن برای مشتری امکان‌پذیر نیست. برای پیگیری با پشتیبانی تماس بگیرید.');
+        return;
+      }
+      o.status = 'cancelled';
+      o.paymentStatus = 'cancelled';
+      if (!Array.isArray(o.statusHistory)) o.statusHistory = [];
+      o.statusHistory.push({ status: 'cancelled', at: Date.now(), note: 'لغو توسط مشتری' });
+      setData('orders', all);
+      renderOrders();
+      alert('سفارش لغو شد.');
+    }
+    window.cancelOrder = cancelOrder;
+    function faDigitsOrders(n) {
+      var map = { '0': '۰', '1': '۱', '2': '۲', '3': '۳', '4': '۴', '5': '۵', '6': '۶', '7': '۷', '8': '۸', '9': '۹' };
+      return String(n).replace(/[0-9]/g, function(d) { return map[d]; });
+    }
+    function renderOrders() {
+      var settingsData = getData('settings', DEFAULT_SETTINGS);
+      var shipSettings = {
+        deliveryDaysMin: settingsData.deliveryDaysMin != null ? settingsData.deliveryDaysMin : 7,
+        deliveryDaysMax: settingsData.deliveryDaysMax != null ? settingsData.deliveryDaysMax : 15
+      };
+      var session = null;
+      try { session = JSON.parse(localStorage.getItem('dekori_customer_session') || 'null'); } catch(e) {}
+      var all = getData('orders', []);
+      if (!Array.isArray(all)) all = [];
+      var list = session ? all.filter(function(o) { return o.customerId === session.id || o.customerPhone === session.phone; }) : [];
+      var box = document.getElementById('ordersList');
+      var empty = document.getElementById('ordersEmpty');
+      if (!list.length) {
+        box.innerHTML = '';
+        empty.style.display = 'block';
+        if (!session) {
+          empty.innerHTML = '<i class="fas fa-user-lock" style="font-size:2rem;opacity:.4;display:block;margin-bottom:12px"></i>برای دیدن سفارش‌ها وارد شوید.<br><a href="index.html" class="btn btn-primary" style="margin-top:16px;display:inline-block">بازگشت و ورود</a>';
+        }
+        return;
+      }
+      empty.style.display = 'none';
+      box.innerHTML = list.map(function(o) {
+        var isCancelled = o.status === 'cancelled';
+        var idx = statusIndex(o.status);
+        var fillW = isCancelled ? 0 : (idx / Math.max(1, STATUS_STEPS.length - 2)) * 76;
+        var stepsToShow = isCancelled ? STATUS_STEPS.filter(function(s){ return s.key === 'cancelled'; }) : STATUS_STEPS.filter(function(s){ return s.key !== 'cancelled'; });
+        var steps = stepsToShow.map(function(st, i) {
+          var realIdx = statusIndex(st.key);
+          var cls = isCancelled ? 'active' : (realIdx < idx ? 'done' : (realIdx === idx ? 'active' : ''));
+          return '<div class="track-step ' + cls + '"><div class="track-dot">' + (realIdx <= idx || isCancelled ? '<i class="fas fa-check"></i>' : (i+1)) + '</div><div class="track-label">' + st.label + '</div></div>';
+        }).join('');
+        var items = (o.items || []).map(function(it) {
+          return '<div style="font-size:.9rem;color:#ccc">' + (it.title || '') + ' × ' + (it.qty || 1) + ' — ' + formatPrice(it.price * (it.qty||1)) + '</div>';
+        }).join('');
+        var addr = o.address || {};
+        var payInfo = '';
+        if (o.paymentMethod === 'cardtocard') {
+          payInfo = '<div style="margin-top:10px;padding:10px;border-radius:10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);font-size:.88rem">' +
+            '<div><strong>پرداخت:</strong> کارت به کارت</div>' +
+            '<div>وضعیت پرداخت: <strong>' + (o.paymentStatus === 'paid' ? 'تأیید شده' : (o.paymentStatus === 'rejected' ? 'رد شده' : 'در انتظار واریز / تأیید')) + '</strong></div>' +
+            (o.paymentCardNumber ? '<div>کارت: ' + o.paymentCardNumber + (o.paymentCardOwner ? ' — ' + o.paymentCardOwner : '') + '</div>' : '') +
+            '</div>';
+        } else if (o.paymentMethod) {
+          payInfo = '<div style="margin-top:8px;font-size:.88rem;color:var(--text-muted)">روش پرداخت: ' + o.paymentMethod + '</div>';
+        }
+        var canCancel = !isCancelled && o.status === 'awaiting_payment';
+        var cancelBtn = canCancel ? '<button type="button" class="btn btn-outline btn-sm" style="margin-top:12px;color:#f87171;border-color:#f87171" onclick="cancelOrder(\'' + o.id + '\')"><i class="fas fa-ban"></i> لغو سفارش</button>' : '';
+        var ticketLink = '<a href="ticket.html" class="btn btn-outline btn-sm" style="margin-top:12px;margin-right:8px"><i class="fas fa-ticket"></i> ارسال تیکت</a>';
+        return '<div class="order-card">' +
+          '<div class="order-head"><span class="order-id">' + o.id + '</span><span style="color:var(--text-muted);font-size:.85rem">' + new Date(o.createdAt).toLocaleString('fa-IR') + '</span></div>' +
+          items +
+          '<div style="margin-top:10px;font-size:.85rem;color:var(--text-muted)"><i class="fas fa-map-marker-alt"></i> ' +
+            (addr.province||'') + '، ' + (addr.city||'') + '، ' + (addr.address||'') +
+            (addr.postal ? ' — کدپستی: ' + addr.postal : '') +
+          '</div>' +
+          '<div style="margin-top:6px;font-size:.9rem;color:var(--text-muted)">هزینه ارسال: ' + formatPrice(o.shipping || 0) + '</div>' +
+          '<div style="margin-top:4px;font-weight:600">جمع کل: ' + formatPrice(o.total || 0) + '</div>' +
+          payInfo +
+          (isCancelled ? '<p style="font-size:.9rem;color:#f87171;margin-top:8px"><i class="fas fa-ban"></i> این سفارش لغو شده است</p>' :
+            '<p style="font-size:.85rem;color:#a78bfa;margin-top:8px"><i class="fas fa-clock"></i> ارسال طی ' + faDigitsOrders(shipSettings.deliveryDaysMin) + ' تا ' + faDigitsOrders(shipSettings.deliveryDaysMax) + ' روز کاری</p>') +
+          '<div class="track-bar"><div class="track-fill" style="width:' + fillW + '%"></div>' + steps + '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:8px">' + cancelBtn + ticketLink + '</div>' +
+        '</div>';
+      }).join('');
+    }
+    window.addEventListener('dekori:data-sync', function(e) {
+      if (e && e.detail && e.detail.key === 'orders') renderOrders();
+    });
+    document.addEventListener('DOMContentLoaded', renderOrders);
+  </script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دکوری آنلاین | فروشگاه اکشن فیگور و دکوری</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header" id="mainHeader">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <img src="images/logo.svg" alt="لوگو" id="siteLogo" onerror="this.style.display='none'">
+        <span id="siteName">دکوری آنلاین</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link active">خانه</a>
+        <a href="#products" class="nav-link">محصولات</a>
+        <a href="#categories" class="nav-link">دسته‌بندی‌ها</a>
+        <a href="#about" class="nav-link">درباره ما</a>
+        <a href="#contact" class="nav-link">تماس</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="searchBtn" title="جستجو"><i class="fas fa-search"></i></button>
+        <button class="icon-btn cart-btn" id="cartBtn" title="سبد خرید">
+          <i class="fas fa-shopping-bag"></i>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <a href="orders.html" class="icon-btn" id="ordersLink" title="سفارش‌ها" style="display:none;text-decoration:none"><i class="fas fa-truck"></i></a>
+        <a href="ticket.html" class="btn btn-primary btn-sm" style="position:relative">پشتیبانی <span id="headerTicketBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:linear-gradient(135deg,#ef4444,#f97316);color:#fff;font-size:.65rem;font-weight:800;min-width:18px;height:18px;border-radius:50px;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 0 10px rgba(239,68,68,.5)">1</span></a>
+        <button class="btn btn-outline btn-sm" id="customerAuthBtn" title="حساب کاربری"><i class="fas fa-user"></i> <span id="customerAuthLabel">ورود خریدار</span></button>
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="منو"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Nav -->
+  <div class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-header">
+      <span>منو</span>
+      <button type="button" id="closeMobileNav" aria-label="بستن"><i class="fas fa-times"></i></button>
+    </div>
+    <nav class="mobile-nav-links">
+      <a href="index.html">خانه</a>
+      <a href="#products">محصولات</a>
+      <a href="#categories">دسته‌بندی‌ها</a>
+      <a href="#about">درباره ما</a>
+      <a href="#contact">تماس</a>
+      <a href="ticket.html" style="position:relative">پشتیبانی / تیکت <span id="mobileTicketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50px;padding:1px 7px;font-size:.75rem;margin-right:6px">1</span></a>
+      <a href="orders.html" id="mobileOrdersLink">پیگیری سفارش</a>
+      <a href="#" id="mobileCustomerAuth">ورود / ثبت‌نام خریدار</a>
+      <a href="seller/login.html" id="mobileSellerEntryLink">ورود فروشنده</a>
+    </nav>
+  </div>
+  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="جستجو با نام یا کد محصول...">
+      <button id="closeSearch"><i class="fas fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero" id="heroSection">
+    <div class="hero-bg">
+      <div class="hero-orbs">
+        <span class="orb orb1"></span>
+        <span class="orb orb2"></span>
+        <span class="orb orb3"></span>
+      </div>
+    </div>
+    <div class="container hero-content">
+      <h1 id="heroTitle">دنیای دکوری‌ها و اکشن فیگورهای خاص</h1>
+      <p id="heroSubtitle">بهترین و باکیفیت‌ترین محصولات دکوری، اکشن فیگور، مجسمه و لوازم تزئینی را از فروشندگان معتبر بخرید</p>
+      <a href="#products" class="btn btn-primary btn-lg">مشاهده محصولات</a>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="section categories" id="categories">
+    <div class="container">
+      <div class="section-header">
+        <h2>دسته‌بندی‌ها</h2>
+        <p>محصولات مورد علاقه‌تان را پیدا کنید</p>
+      </div>
+      <div class="categories-grid" id="categoriesGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section class="section products" id="products">
+    <div class="container">
+      <div class="section-header">
+        <h2>آخرین محصولات</h2>
+        <p>تازه‌ترین و محبوب‌ترین آیتم‌ها</p>
+      </div>
+      <div class="filters" id="filtersBar">
+        <button class="filter-btn active" data-filter="all">همه</button>
+        <!-- filled dynamically by JS -->
+      </div>
+      <div class="products-grid" id="productsGrid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="section about" id="about">
+    <div class="container about-inner">
+      <div class="about-text">
+        <h2 id="aboutTitle">درباره دکوری آنلاین</h2>
+        <p id="aboutText">دکوری آنلاین پلتفرمی است برای خرید و فروش محصولات دکوری، اکشن فیگور، مجسمه‌های کلکسیونی و لوازم تزئینی. ما به فروشندگان امکان می‌دهیم محصولات خود را به راحتی عرضه کنند و خریداران بتوانند با اطمینان خرید کنند.</p>
+      </div>
+      <div class="about-stats">
+        <div class="stat">
+          <span class="stat-num" id="statProducts">0</span>
+          <span class="stat-label">محصول</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="statSellers">0</span>
+          <span class="stat-label">فروشنده</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num">۱۰۰٪</span>
+          <span class="stat-label">رضایت</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section contact" id="contact">
+    <div class="container">
+      <div class="section-header">
+        <h2>تماس با ما</h2>
+      </div>
+      <div class="contact-info" id="contactInfo">
+        <div class="contact-item">
+          <i class="fas fa-envelope"></i>
+          <span id="contactEmail">info@dekori.online</span>
+        </div>
+        <div class="contact-item">
+          <i class="fas fa-phone"></i>
+          <span id="contactPhone">۰۹۱۲۱۲۳۴۵۶۷</span>
+        </div>
+        <div class="contact-item">
+          <i class="fas fa-map-marker-alt"></i>
+          <span id="contactAddress">تهران، ایران</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span id="footerSiteName">دکوری آنلاین</span>
+        <p id="footerText">فروشگاه تخصصی محصولات دکوری و اکشن فیگور</p>
+      </div>
+      <div class="footer-links">
+        <a href="#products">محصولات</a>
+        <a href="#categories">دسته‌بندی‌ها</a>
+        <a href="ticket.html" style="position:relative">پشتیبانی / تیکت <span id="footerTicketBadge" style="display:none;background:#ef4444;color:#fff;border-radius:50px;padding:1px 7px;font-size:.75rem;margin-right:6px">1</span></a>
+        <a href="orders.html">پیگیری سفارش</a>
+        <a href="seller/register.html" style="opacity:.75">فروشنده شوید</a>
+        <a href="seller/login.html" id="sellerEntryLink" style="opacity:.75">فروشنده</a>
+        <a href="admin/login.html">مدیریت</a>
+      </div>
+      <p class="copyright">© ۱۴۰۵ دکوری آنلاین. تمامی حقوق محفوظ است.</p>
+    </div>
+  </footer>
+
+  <!-- Cart Sidebar -->
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h3>سبد خرید</h3>
+      <button id="closeCart"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div style="margin-bottom:12px">
+        <label style="font-size:.85rem;color:var(--text-muted);display:block;margin-bottom:6px">کد تخفیف</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="form-control" id="couponInput" placeholder="مثلاً OFF10" style="flex:1;padding:10px 12px;font-size:.9rem">
+          <button type="button" class="btn btn-outline" id="applyCouponBtn" style="white-space:nowrap">اعمال</button>
+        </div>
+        <div id="couponMsg" style="font-size:.8rem;margin-top:6px;color:var(--text-muted)"></div>
+      </div>
+      <div class="cart-total" id="cartSubtotalRow" style="display:none;font-size:.9rem;opacity:.8;margin-bottom:4px">
+        <span>جمع قبل از تخفیف:</span>
+        <span id="cartSubtotal">۰</span>
+      </div>
+      <div class="cart-total" id="cartDiscountRow" style="display:none;font-size:.9rem;color:#34d399;margin-bottom:4px">
+        <span>تخفیف:</span>
+        <span id="cartDiscount">۰</span>
+      </div>
+      <div class="cart-total">
+        <span>جمع کل:</span>
+        <strong id="cartTotal">۰ تومان</strong>
+      </div>
+      <button class="btn btn-primary btn-block" id="checkoutBtn">ادامه خرید</button>
+    </div>
+  </div>
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Product Modal -->
+  <div class="modal" id="productModal">
+    <div class="modal-content product-modal">
+      <button class="modal-close" id="closeProductModal"><i class="fas fa-times"></i></button>
+      <div class="product-modal-body" id="productModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Customer Auth Modal -->
+  <div class="modal" id="authModal">
+    <div class="modal-content" style="max-width:420px;padding:28px">
+      <button class="modal-close" id="closeAuthModal"><i class="fas fa-times"></i></button>
+      <div class="tabs" style="display:flex;gap:8px;margin-bottom:20px">
+        <button type="button" class="tab-btn active" data-authtab="login" id="authTabLogin">ورود</button>
+        <button type="button" class="tab-btn" data-authtab="register" id="authTabRegister">ثبت‌نام</button>
+      </div>
+      <div id="authLoginPanel">
+        <div class="form-group"><label>شماره موبایل *</label><input type="text" class="form-control" id="loginPhone" placeholder="0912..."></div>
+        <div class="form-group"><label>رمز عبور *</label><input type="password" class="form-control" id="loginPass"></div>
+        <button type="button" class="btn btn-primary btn-block" id="doLoginBtn">ورود</button>
+      </div>
+      <div id="authRegisterPanel" style="display:none">
+        <div class="form-group"><label>نام و نام خانوادگی *</label><input type="text" class="form-control" id="regName"></div>
+        <div class="form-group"><label>شماره موبایل *</label><input type="text" class="form-control" id="regPhone" placeholder="0912..."></div>
+        <div class="form-group"><label>ایمیل (اختیاری)</label><input type="email" class="form-control" id="regEmail"></div>
+        <div class="form-group"><label>رمز عبور *</label><input type="password" class="form-control" id="regPass"></div>
+        <button type="button" class="btn btn-primary btn-block" id="doRegisterBtn">ثبت‌نام</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="modal" id="checkoutModal">
+    <div class="modal-content" style="max-width:560px;padding:28px;max-height:90vh;overflow-y:auto">
+      <button class="modal-close" id="closeCheckoutModal"><i class="fas fa-times"></i></button>
+      <h2 style="margin-bottom:8px"><i class="fas fa-truck" style="color:#a78bfa"></i> تکمیل سفارش</h2>
+      <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:20px" id="checkoutDeliveryNote">ارسال طی ۷ تا ۱۵ روز کاری انجام می‌شود.</p>
+      <div id="savedAddresses" style="margin-bottom:16px"></div>
+      <div class="form-group"><label>نام گیرنده *</label><input type="text" class="form-control" id="coName"></div>
+      <div class="form-group"><label>شماره تماس *</label><input type="text" class="form-control" id="coPhone" placeholder="0912..."></div>
+      <div class="form-group"><label>استان *</label><input type="text" class="form-control" id="coProvince" placeholder="تهران"></div>
+      <div class="form-group"><label>شهر *</label><input type="text" class="form-control" id="coCity" placeholder="تهران"></div>
+      <div class="form-group"><label>آدرس کامل *</label><textarea class="form-control" id="coAddress" rows="2" placeholder="خیابان، کوچه، پلاک، واحد"></textarea></div>
+      <div class="form-group"><label>کد پستی</label><input type="text" class="form-control" id="coPostal" placeholder="1234567890"></div>
+      <div class="form-group">
+        <label>محدوده ارسال *</label>
+        <div class="shipping-options" id="shippingOptionsBox">
+          <label class="shipping-option">
+            <input type="radio" name="shippingZone" value="near" checked>
+            <span class="shipping-option-body">
+              <strong>اطراف فروشگاه</strong>
+              <span>هزینه ارسال: ۲۰۰,۰۰۰ تومان</span>
+            </span>
+          </label>
+          <label class="shipping-option">
+            <input type="radio" name="shippingZone" value="far">
+            <span class="shipping-option-body">
+              <strong>مناطق دورتر</strong>
+              <span>هزینه ارسال: ۳۰۰,۰۰۰ تومان</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group"><label>موقعیت روی نقشه (اختیاری)</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" class="form-control" id="coLat" placeholder="عرض جغرافیایی" style="flex:1;min-width:120px">
+          <input type="text" class="form-control" id="coLng" placeholder="طول جغرافیایی" style="flex:1;min-width:120px">
+          <button type="button" class="btn btn-outline" id="coUseLocation" style="white-space:nowrap"><i class="fas fa-map-marker-alt"></i> موقعیت من</button>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer">
+        <input type="checkbox" id="coSaveAddr" checked> ذخیره این آدرس برای خریدهای بعدی
+      </label>
+      <div class="form-group">
+        <label>روش پرداخت *</label>
+        <div id="paymentMethodsBox" class="shipping-options"></div>
+      </div>
+      <div id="cardToCardInfo" style="display:none;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:14px;margin-bottom:16px;font-size:.92rem">
+        <div style="font-weight:700;margin-bottom:8px;color:#34d399"><i class="fas fa-credit-card"></i> اطلاعات کارت به کارت</div>
+        <div>شماره کارت: <strong id="ctcCardNumber">—</strong></div>
+        <div>به نام: <strong id="ctcCardOwner">—</strong></div>
+        <div style="margin-top:8px;color:var(--text-muted);font-size:.85rem">بعد از ثبت سفارش، مبلغ را واریز کنید. پس از تأیید مدیریت، سفارش شما پردازش می‌شود.</div>
+      </div>
+      <div id="checkoutSummary" style="background:rgba(124,58,237,.08);border-radius:12px;padding:14px;margin-bottom:16px;font-size:.95rem"></div>
+      <button type="button" class="btn btn-primary btn-block" id="placeOrderBtn" style="padding:14px;font-size:1rem">
+        <i class="fas fa-check"></i> ثبت نهایی سفارش
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

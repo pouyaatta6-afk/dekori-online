@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ثبت‌نام فروشنده | دکوری آنلاین</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .reg-page {
+      min-height: 100vh; padding: 40px 20px 80px;
+      background: radial-gradient(ellipse at 30% 0%, rgba(124,58,237,0.15) 0%, transparent 50%), var(--bg);
+    }
+    .reg-wrap { max-width: 700px; margin: 0 auto; }
+    .reg-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+      padding: 36px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .reg-card h1 { font-size: 1.5rem; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+    .reg-card h1 i { color: var(--primary-light); }
+    .reg-card .sub { color: var(--text-muted); margin-bottom: 28px; font-size: 0.95rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .success-box {
+      display: none; text-align: center; padding: 48px 20px;
+      background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 16px;
+    }
+    .success-box.show { display: block; }
+    .success-box i { font-size: 3.5rem; color: #34d399; margin-bottom: 16px; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; margin-bottom: 20px; }
+    .back-link:hover { color: var(--primary-light); }
+    .info-note {
+      background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; font-size: 0.9rem; color: #c4b5fd;
+    }
+  </style>
+</head>
+<body>
+  <div class="reg-page">
+    <div class="reg-wrap">
+      <a href="../index.html" class="back-link"><i class="fas fa-arrow-right"></i> بازگشت به فروشگاه</a>
+      <div class="reg-card">
+        <div id="regForm">
+          <h1><i class="fas fa-store"></i> ثبت‌نام فروشنده</h1>
+          <p class="sub">اطلاعاتت رو کامل پر کن — بعد از تایید مدیر، رمز ورود برات ساخته می‌شه</p>
+          <div class="info-note">
+            <i class="fas fa-info-circle"></i>
+            بعد از ارسال، درخواستت به پنل مدیریت می‌ره. مدیر بررسی و تایید می‌کنه، بعد می‌تونی وارد بشی و محصول بذاری.
+          </div>
+
+          <div class="form-group">
+            <label>نام فروشگاه / برند *</label>
+            <input type="text" class="form-control" id="rName" placeholder="مثال: فروشگاه کلکسیون">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>نام و نام خانوادگی صاحب *</label>
+              <input type="text" class="form-control" id="rOwner" placeholder="نام کامل">
+            </div>
+            <div class="form-group">
+              <label>شماره موبایل *</label>
+              <input type="text" class="form-control" id="rPhone" placeholder="۰۹۱۲۱۲۳۴۵۶۷">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>ایمیل</label>
+              <input type="email" class="form-control" id="rEmail" placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+              <label>کد ملی *</label>
+              <input type="text" class="form-control" id="rNationalId" placeholder="۰۰۱۲۳۴۵۶۷۸" maxlength="10">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>کد پستی مغازه *</label>
+              <input type="text" class="form-control" id="rPostal" placeholder="۱۲۳۴۵۶۷۸۹۰" maxlength="10">
+            </div>
+            <div class="form-group">
+              <label>شهر *</label>
+              <input type="text" class="form-control" id="rCity" placeholder="تهران">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>آدرس کامل مغازه / محل کسب *</label>
+            <textarea class="form-control" id="rAddress" placeholder="خیابان، کوچه، پلاک، واحد..." rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>توضیحات (اختیاری)</label>
+            <textarea class="form-control" id="rDesc" placeholder="درباره فروشگاه و نوع محصولات..." rows="2"></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" id="submitReg" style="padding:14px;font-size:1rem;margin-top:8px">
+            <i class="fas fa-paper-plane"></i> ارسال درخواست ثبت‌نام
+          </button>
+          <p style="text-align:center;margin-top:20px;color:var(--text-muted);font-size:0.9rem">
+            قبلاً ثبت‌نام کردی؟ <a href="login.html" style="color:var(--primary-light)">ورود فروشنده</a>
+          </p>
+        </div>
+        <div class="success-box" id="regSuccess">
+          <i class="fas fa-clock"></i>
+          <h2>درخواستت ثبت شد!</h2>
+          <p style="color:var(--text-muted);margin:12px 0 8px;line-height:1.8">
+            درخواستت برای مدیر ارسال شد.<br>
+            بعد از بررسی و تایید، از طریق شماره/ایمیلی که دادی باهات تماس می‌گیرن<br>
+            و رمز ورود پنل فروشنده برات ارسال می‌شه.
+          </p>
+          <p style="margin:16px 0;color:var(--primary-light)">شماره پیگیری: <strong id="regId"></strong></p>
+          <a href="../index.html" class="btn btn-primary">بازگشت به فروشگاه</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/data.js"></script>
+  <script>
+    document.getElementById('submitReg').addEventListener('click', () => {
+      const name = document.getElementById('rName').value.trim();
+      const owner = document.getElementById('rOwner').value.trim();
+      const phone = document.getElementById('rPhone').value.trim();
+      const email = document.getElementById('rEmail').value.trim();
+      const nationalId = document.getElementById('rNationalId').value.trim();
+      const postal = document.getElementById('rPostal').value.trim();
+      const city = document.getElementById('rCity').value.trim();
+      const address = document.getElementById('rAddress').value.trim();
+      const desc = document.getElementById('rDesc').value.trim();
+
+      if (!name || !owner || !phone || !nationalId || !postal || !city || !address) {
+        alert('لطفاً همه فیلدهای ستاره‌دار (*) را پر کنید');
+        return;
+      }
+      if (nationalId.length !== 10 || !/^\d+$/.test(nationalId)) {
+        alert('کد ملی باید ۱۰ رقم باشد');
+        return;
+      }
+
+      const req = {
+        id: generateId('req'),
+        name, owner, phone, email, nationalId, postal, city, address, desc,
+        status: 'pending',
+        createdAt: Date.now()
+      };
+      const pending = getData('pendingSellers', []);
+      pending.unshift(req);
+      setData('pendingSellers', pending);
+
+      document.getElementById('regForm').style.display = 'none';
+      document.getElementById('regId').textContent = req.id;
+      document.getElementById('regSuccess').classList.add('show');
+    });
+  </script>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <input id="p4-option-name" placeholder="نام گزینه؛ مثلا رنگ قرمز" style="flex:1;min-width:220px;padding:12px;border-radius:10px;border:1px solid #555;background:#222;color:#fff">
+    <input id="p4-option-price" type="number" min="0" placeholder="قیمت این گزینه (تومان)" style="flex:1;min-width:220px;padding:12px;border-radius:10px;border:1px solid #555;background:#222;color:#fff">
+    <button type="button" id="p4-add-option" style="padding:12px 18px;border:0;border-radius:10px;cursor:pointer">افزودن گزینه + قیمت</button>
+  </div>
+  <div id="p4-options" style="margin-top:14px"></div>
+  <div id="p4-msg" style="margin-top:12px;color:#ffd43b"></div>
+</div>
+<script>
+(function(){
+ const photos=[...document.querySelectorAll('.p4-photo')];
+ const opts=document.getElementById('p4-options'), msg=document.getElementById('p4-msg');
+ const name=document.getElementById('p4-option-name'), price=document.getElementById('p4-option-price');
+ const list=[];
+ function render(){
+   opts.innerHTML=list.map((x,i)=>`<div style="display:flex;gap:10px;align-items:center;padding:10px;margin:7px 0;background:#1d1d1d;border-radius:12px">
+     <b style="flex:1">${x.name}</b><span>${Number(x.price).toLocaleString('fa-IR')} تومان</span>
+     <button type="button" data-i="${i}" style="border:0;border-radius:8px;padding:7px 10px;cursor:pointer">حذف</button>
+   </div>`).join('');
+   opts.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{list.splice(+b.dataset.i,1);render();});
+ }
+ document.getElementById('p4-add-option').onclick=function(){
+   if(!name.value.trim() || price.value===""){msg.textContent='نام گزینه و قیمت را وارد کنید.';return;}
+   list.push({name:name.value.trim(),price:Number(price.value)});
+   name.value='';price.value='';msg.textContent='گزینه با قیمت جداگانه اضافه شد.';render();
+ };
+ const form=photos[0] && photos[0].closest('form');
+ if(form){
+   form.addEventListener('submit',function(e){
+     if(photos.filter(x=>x.files && x.files.length).length<4){
+       e.preventDefault();msg.textContent='برای ثبت محصول حداقل ۴ عکس باید انتخاب شود.';return;
+     }
+     if(!list.length){e.preventDefault();msg.textContent='حداقل یک گزینه و قیمت آن را اضافه کنید.';return;}
+     let hidden=form.querySelector('#p4-data');
+     if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.id='p4-data';hidden.name='variant_prices';form.appendChild(hidden);}
+     hidden.value=JSON.stringify(list);
+   });
+ }
+})();
+</script>
+
+
+
+<style id="one-options-inside-product">
+#productOptionsInside{display:none;margin-top:14px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.035)}
+#productOptionsInside.on{display:block}
+.poi-group{padding:12px;margin-top:10px;border:1px solid rgba(255,255,255,.1);border-radius:13px}
+.poi-group-title{display:flex;gap:8px;align-items:center}
+.poi-group input,.poi-opt input{box-sizing:border-box;width:100%;padding:10px;border-radius:10px;border:1px solid #444;background:#111;color:inherit;font:inherit}
+.poi-opt{display:grid;grid-template-columns:1fr 170px 38px;gap:8px;align-items:center;margin-top:8px}
+.poi-price{position:relative}.poi-price input{padding-left:45px!important}
+.poi-price:after{content:"تومان";position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;color:#aaa;pointer-events:none}
+.poi-btn{border:0;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit}
+.poi-add{background:#f5b800;color:#111;font-weight:800}
+.poi-del{background:#5b1d1d;color:#fff}
+@media(max-width:600px){.poi-opt{grid-template-columns:1fr 120px 38px}}
+</style>
+<script id="one-options-inside-product">
+(function(){
+  function txt(e){return String(e?.innerText||e?.value||e?.getAttribute?.('aria-label')||e?.title||'').trim();}
+  function isActivation(e){
+    const t=txt(e);
+    return /فعال کردن گزینه|فعال.*گزینه|گزینه.*فعال|تنوع.*فعال/.test(t);
+  }
+  function findActivation(){
+    return [...document.querySelectorAll('input[type="checkbox"],button,label')].find(isActivation);
+  }
+  function productContainer(toggle){
+    return toggle.closest('form') ||
+      toggle.closest('[role="dialog"]') ||
+      toggle.closest('.modal,.drawer,.card,.panel') ||
+      toggle.parentElement;
+  }
+  function make(toggle){
+    const host=productContainer(toggle);
+    if(!host || host.querySelector('#productOptionsInside')) return host?.querySelector('#productOptionsInside');
+    const box=document.createElement('div');
+    box.id='productOptionsInside';
+    box.innerHTML='<div style="font-weight:800;font-size:16px">گزینه‌های محصول</div>'+
+      '<div style="font-size:12px;color:#aaa;margin-top:4px">برای هر گزینه قیمت جداگانه وارد کنید.</div>'+
+      '<div id="poiGroups"></div>'+
+      '<button type="button" class="poi-btn poi-add" id="poiAddGroup" style="margin-top:12px">＋ افزودن گروه گزینه</button>';
+    host.appendChild(box);
+    const groups=box.querySelector('#poiGroups');
+
+    function addGroup(){
+      const g=document.createElement('div'); g.className='poi-group';
+      g.innerHTML='<div class="poi-group-title"><input class="poi-group-name" placeholder="نام گزینه؛ مثلاً رنگ"><button type="button" class="poi-btn poi-del">حذف گروه</button></div><div class="poi-rows"></div><button type="button" class="poi-btn poi-add" style="margin-top:8px">＋ افزودن گزینه</button>';
+      const rows=g.querySelector('.poi-rows');
+      function addOpt(){
+        const r=document.createElement('div'); r.className='poi-opt';
+        r.innerHTML='<input class="poi-opt-name" placeholder="مثلاً قرمز"><div class="poi-price"><input class="poi-opt-price" type="number" min="0" step="1" placeholder="قیمت"></div><button type="button" class="poi-btn poi-del">×</button>';
+        r.querySelector('button').onclick=()=>r.remove();
+        rows.appendChild(r);
+      }
+      g.querySelectorAll('.poi-del')[0].onclick=()=>g.remove();
+      g.querySelector('.poi-add').onclick=addOpt;
+      groups.appendChild(g);
+      addOpt();
+    }
+    box.querySelector('#poiAddGroup').onclick=addGroup;
+    return box;
+  }
+
+  function setup(){
+    const t=findActivation();
+    if(!t || t.dataset.poiBound) return;
+    t.dataset.poiBound='1';
+    const box=make(t);
+    function state(){
+      let active=false;
+      if(t.type==='checkbox') active=t.checked;
+      else active=/فعال/.test(txt(t));
+      box.classList.toggle('on',active);
+    }
+    t.addEventListener('change',state);
+    t.addEventListener('click',()=>setTimeout(state,30));
+    state();
+  }
+
+  document.addEventListener('DOMContentLoaded',setup);
+  new MutationObserver(setup).observe(document.body,{childList:true,subtree:true});
+
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('button,input[type="submit"]');
+    if(!b || !/ثبت محصول|ثبت|ذخیره محصول|افزودن محصول/.test(txt(b))) return;
+    const form=b.closest('form');
+    const box=form?.querySelector('#productOptionsInside') || document.querySelector('#productOptionsInside');
+    if(!box) return;
+    const data=[...box.querySelectorAll('.poi-group')].map(g=>({
+      name:g.querySelector('.poi-group-name')?.value.trim()||'',
+      options:[...g.querySelectorAll('.poi-opt')].map(r=>({
+        name:r.querySelector('.poi-opt-name')?.value.trim()||'',
+        price:Number(r.querySelector('.poi-opt-price')?.value||0)
+      })).filter(x=>x.name)
+    })).filter(x=>x.name);
+    if(form){
+      let h=form.querySelector('input[name="product_options"]');
+      if(!h){h=document.createElement('input');h.type='hidden';h.name='product_options';form.appendChild(h)}
+      h.value=JSON.stringify(data);
+    }
+  },true);
+})();
+</script>
+</body>
+</html>

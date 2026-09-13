@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سایت‌ساز پازلی | دکوری آنلاین</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --admin-sidebar: #12121a;
+      --admin-accent: #8b5cf6;
+    }
+    body { background: #0c0c12; }
+    .dashboard { min-height: 100vh; }
+    .sidebar {
+      width: 270px;
+      background: var(--admin-sidebar);
+      border-left: 1px solid #1e1e2e;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 28px 24px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      border-bottom: 1px solid #1e1e2e;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-logo .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .sidebar-nav { flex: 1; padding: 12px 0; }
+    .sidebar-nav .nav-section {
+      font-size: 0.7rem;
+      color: #5a5a70;
+      padding: 16px 24px 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 24px;
+      color: #8b8ba0;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-right: 3px solid transparent;
+    }
+    .sidebar-nav a:hover {
+      background: rgba(139, 92, 246, 0.08);
+      color: #c4b5fd;
+    }
+    .sidebar-nav a.active {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c4b5fd;
+      border-right-color: #8b5cf6;
+    }
+    .sidebar-nav a i { width: 22px; text-align: center; font-size: 1rem; }
+    .nav-badge {
+      margin-right: auto; background: linear-gradient(135deg,#ef4444,#f97316); color:#fff;
+      font-size:.7rem; font-weight:800; min-width:20px; height:20px; border-radius:50px;
+      display:inline-flex; align-items:center; justify-content:center; padding:0 6px;
+      box-shadow:0 0 12px rgba(239,68,68,.5); animation: pulseBadge 1.6s ease-in-out infinite;
+    }
+    @keyframes pulseBadge { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+    .compose-ticket-card {
+      background: linear-gradient(160deg, rgba(124,58,237,.15), rgba(15,15,25,.95));
+      border: 1px solid rgba(167,139,250,.35); border-radius: 20px; padding: 24px;
+      margin-bottom: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    }
+    .compose-ticket-card h2 { margin:0 0 6px; font-size:1.2rem; display:flex; align-items:center; gap:10px }
+    .compose-ticket-card .hint { color:#a1a1b5; font-size:.9rem; margin-bottom:18px }
+    .recipient-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px }
+    .recipient-chip {
+      background:rgba(124,58,237,.2); border:1px solid rgba(167,139,250,.4); color:#e9d5ff;
+      padding:6px 12px; border-radius:50px; font-size:.85rem; display:inline-flex; gap:8px; align-items:center
+    }
+    .recipient-chip button { background:none;border:none;color:#f87171;cursor:pointer;font-size:1rem }
+    .compose-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px }
+    .quick-pick {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:8px; max-height:180px; overflow:auto;
+      margin-top:10px; padding:10px; background:rgba(0,0,0,.25); border-radius:12px; border:1px solid rgba(255,255,255,.06)
+    }
+    .quick-pick label { display:flex; gap:8px; align-items:center; font-size:.88rem; color:#d4d4e0; cursor:pointer }
+
+    .sidebar-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #1e1e2e;
+      font-size: 0.8rem;
+      color: #5a5a70;
+    }
+    .main-content {
+      flex: 1;
+      padding: 28px 36px;
+      overflow-y: auto;
+      background: #0c0c12;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .page-title .badge-new {
+      font-size: 0.7rem;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+    .tab-content { display: none; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .dash-card {
+      background: #16161f;
+      border: 1px solid #252535;
+      border-radius: 16px;
+      padding: 22px;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .dash-card:hover { border-color: #3d3d55; transform: translateY(-2px); }
+    .dash-card .card-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+    .dash-card .card-icon.purple { background: rgba(139,92,246,0.2); color: #a78bfa; }
+    .dash-card .card-icon.amber { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .dash-card .card-icon.green { background: rgba(16,185,129,0.2); color: #34d399; }
+    .dash-card .card-icon.pink { background: rgba(236,72,153,0.2); color: #f472b6; }
+    .dash-card h3 { color: #8b8ba0; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; }
+    .dash-card .value { font-size: 1.7rem; font-weight: 800; color: #eee; }
+
+    /* Plugin cards */
+    .plugins-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .plugin-card {
+      background: #16161f;
+      border: 1px solid #252535;
+      border-radius: 16px;
+      padding: 22px;
+      transition: all 0.25s;
+      position: relative;
+    }
+    .plugin-card:hover { border-color: #3d3d55; }
+    .plugin-card.enabled { border-color: rgba(139,92,246,0.4); background: linear-gradient(145deg, #16161f, #1a1528); }
+    .plugin-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .plugin-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: rgba(139,92,246,0.15);
+      color: #a78bfa;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .plugin-card.enabled .plugin-icon {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      color: white;
+    }
+    .plugin-info h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+    .plugin-info p { font-size: 0.85rem; color: #8b8ba0; line-height: 1.5; }
+    .plugin-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #252535;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 48px; height: 26px;
+      cursor: pointer;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: #2a2a3a;
+      border-radius: 50px;
+      transition: 0.3s;
+    }
+    .toggle-slider:before {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #888;
+      top: 3px; right: 3px;
+      transition: 0.3s;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(-22px);
+      background: white;
+    }
+    .plugin-settings-btn {
+      background: none; border: 1px solid #333;
+      color: #8b8ba0; padding: 6px 12px;
+      border-radius: 8px; cursor: pointer;
+      font-family: inherit; font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .plugin-settings-btn:hover { border-color: #7c3aed; color: #a78bfa; }
+
+    /* Code editor */
+    .code-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 0;
+      background: #12121a;
+      border-radius: 12px 12px 0 0;
+      padding: 6px 6px 0;
+      border: 1px solid #252535;
+      border-bottom: none;
+    }
+    .code-tab {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      color: #8b8ba0;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.2s;
+    }
+    .code-tab.active {
+      background: #1a1a28;
+      color: #c4b5fd;
+    }
+    .code-tab i { margin-left: 6px; }
+    .code-editor-wrap {
+      background: #1a1a28;
+      border: 1px solid #252535;
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+    }
+    .code-editor {
+      width: 100%;
+      min-height: 320px;
+      background: #1a1a28;
+      border: none;
+      color: #e2e8f0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      padding: 20px;
+      resize: vertical;
+      outline: none;
+      direction: ltr;
+      text-align: left;
+    }
+    .code-panel { display: none; }
+    .code-panel.active { display: block; }
+    .code-hint {
+      padding: 10px 20px;
+      background: #12121a;
+      color: #6b6b80;
+      font-size: 0.8rem;
+      border-top: 1px solid #252535;
+    }
+
+    /* Settings */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .settings-card {
+      background: #16161f;
+      border: 1px solid #252535;
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .settings-card h3 {
+      margin-bottom: 18px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .settings-card h3 i { color: #a78bfa; }
+    .settings-card.full { grid-column: 1 / -1; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #a1a1b5;
+    }
+    .form-control {
+      width: 100%;
+      padding: 11px 14px;
+      background: #0c0c12;
+      border: 1px solid #2a2a3a;
+      border-radius: 10px;
+      color: #eee;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: #7c3aed; }
+    textarea.form-control { min-height: 90px; resize: vertical; }
+    .color-row { display: flex; align-items: center; gap: 12px; }
+    .color-row input[type="color"] {
+      width: 48px; height: 40px;
+      border: none; background: none;
+      cursor: pointer; border-radius: 8px;
+    }
+    .section-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .section-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0c0c12;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .section-toggle:hover { border-color: #7c3aed; }
+    .section-toggle.active { border-color: #7c3aed; background: rgba(124,58,237,0.1); }
+    .section-toggle input { display: none; }
+
+    /* Tables */
+    .table-wrap {
+      background: #16161f;
+      border: 1px solid #252535;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 13px 16px; text-align: right; border-bottom: 1px solid #252535; }
+    th { background: #12121a; font-weight: 600; color: #8b8ba0; font-size: 0.85rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .btn-save {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+    }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,58,237,0.4); }
+    .saved-toast {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      color: #34d399;
+      font-weight: 600;
+      margin-right: 16px;
+    }
+    .saved-toast.show { display: inline-flex; }
+
+    /* Modal for plugin settings */
+    .plugin-modal-body .form-group { margin-bottom: 14px; }
+
+    .seller-pass-box {
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.4);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 16px;
+      display: none;
+    }
+    .seller-pass-box.show { display: block; }
+    .seller-pass-box code {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #34d399;
+      letter-spacing: 3px;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .quick-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .quick-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: #16161f;
+      border: 1px solid #252535;
+      border-radius: 12px;
+      color: #a1a1b5;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .quick-link:hover { border-color: #7c3aed; color: #c4b5fd; }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .main-content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-puzzle-piece"></i></div>
+        <div>
+          <div>سایت‌ساز پازلی</div>
+          <div style="font-size:0.7rem;color:#6b6b80;font-weight:400">دکوری آنلاین</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">اصلی</div>
+        <a href="#" class="active" data-tab="overview"><i class="fas fa-home"></i> داشبورد</a>
+        <a href="#" data-tab="builder"><i class="fas fa-puzzle-piece"></i> سازنده سایت</a>
+        <a href="#" data-tab="plugins"><i class="fas fa-plug"></i> افزونه‌ها</a>
+        <a href="#" data-tab="code"><i class="fas fa-code"></i> کدهای اختصاصی</a>
+
+        <div class="nav-section">محتوا</div>
+        <a href="#" data-tab="products"><i class="fas fa-box"></i> محصولات</a>
+        <a href="#" data-tab="sellers"><i class="fas fa-users"></i> فروشندگان</a>
+        <a href="#" data-tab="pending"><i class="fas fa-user-clock"></i> درخواست‌های فروشنده</a>
+        <a href="#" data-tab="tickets" id="navTickets"><i class="fas fa-ticket-alt"></i> تیکت‌ها <span id="ticketBadge" class="nav-badge" style="display:none">0</span></a>
+        <a href="#" data-tab="orders"><i class="fas fa-shopping-cart"></i> سفارش‌ها</a>
+        <a href="#" data-tab="reviews"><i class="fas fa-star"></i> نظرات</a>
+        <a href="#" data-tab="payments"><i class="fas fa-credit-card"></i> درگاه‌های پرداخت</a>
+        <a href="#" data-tab="coupons"><i class="fas fa-percent"></i> کدهای تخفیف</a>
+        <a href="#" data-tab="categories"><i class="fas fa-tags"></i> دسته‌بندی‌ها</a>
+
+        <div class="nav-section">سایر</div>
+        <a href="../index.html" target="_blank"><i class="fas fa-external-link-alt"></i> مشاهده سایت</a>
+        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> خروج</a>
+      </nav>
+      <div class="sidebar-footer">رمز مدیریت: ۲۰۱۲</div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- ========== OVERVIEW ========== -->
+      <div class="tab-content active" id="tab-overview">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-home" style="color:#a78bfa"></i> داشبورد</h1>
+          <div class="quick-links">
+            <a href="../index.html" target="_blank" class="quick-link"><i class="fas fa-eye"></i> مشاهده سایت</a>
+            <a href="#" class="quick-link" data-gotab="builder"><i class="fas fa-paint-brush"></i> ویرایش ظاهر</a>
+          </div>
+        </div>
+        <div class="dashboard-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px">
+          <div class="dash-card">
+            <div class="card-icon purple"><i class="fas fa-box"></i></div>
+            <h3>محصولات</h3>
+            <div class="value" id="statProducts">0</div>
+          </div>
+          <div class="dash-card">
+            <div class="card-icon amber"><i class="fas fa-store"></i></div>
+            <h3>فروشندگان</h3>
+            <div class="value" id="statSellers">0</div>
+          </div>
+          <div class="dash-card">
+            <div class="card-icon green"><i class="fas fa-plug"></i></div>
+            <h3>افزونه‌های فعال</h3>
+            <div class="value" id="statPlugins">0</div>
+          </div>
+          <div class="dash-card">
+            <div class="card-icon pink"><i class="fas fa-tags"></i></div>
+            <h3>دسته‌بندی‌ها</h3>
+            <div class="value" id="statCats">0</div>
+          </div>
+        </div>
+        <div class="settings-card" id="quickColorBox" style="margin-bottom:20px">
+          <h3><i class="fas fa-palette"></i> رنگ کل سایت</h3>
+          <p style="color:#8b8ba0;font-size:.9rem;margin-bottom:16px">رنگ بنفش پیش‌فرض را از اینجا عوض کن — روی دکمه‌ها و هایلایت‌ها اعمال می‌شود.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end">
+            <div class="form-group" style="margin:0">
+              <label>رنگ اصلی</label>
+              <div style="display:flex;gap:10px;align-items:center">
+                <input type="color" id="quickPrimary" value="#7c3aed" style="width:56px;height:40px;border:none;background:none;cursor:pointer">
+                <span id="quickPrimaryLabel" style="color:#8b8ba0;font-size:.85rem">#7c3aed</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label>رنگ ثانویه (قیمت‌ها)</label>
+              <div style="display:flex;gap:10px;align-items:center">
+                <input type="color" id="quickSecondary" value="#f59e0b" style="width:56px;height:40px;border:none;background:none;cursor:pointer">
+                <span id="quickSecondaryLabel" style="color:#8b8ba0;font-size:.85rem">#f59e0b</span>
+              </div>
+            </div>
+            <button type="button" class="btn-save" id="saveQuickColors"><i class="fas fa-check"></i> اعمال رنگ</button>
+            <span class="saved-toast" id="quickColorSaved"><i class="fas fa-check-circle"></i> ذخیره شد</span>
+          </div>
+          <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px" id="colorPresets">
+            <button type="button" class="preset-color" data-p="#7c3aed" data-s="#f59e0b" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#7c3aed;cursor:pointer" title="بنفش"></button>
+            <button type="button" class="preset-color" data-p="#2563eb" data-s="#f59e0b" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#2563eb;cursor:pointer" title="آبی"></button>
+            <button type="button" class="preset-color" data-p="#059669" data-s="#f59e0b" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#059669;cursor:pointer" title="سبز"></button>
+            <button type="button" class="preset-color" data-p="#dc2626" data-s="#f59e0b" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#dc2626;cursor:pointer" title="قرمز"></button>
+            <button type="button" class="preset-color" data-p="#db2777" data-s="#fbbf24" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#db2777;cursor:pointer" title="صورتی"></button>
+            <button type="button" class="preset-color" data-p="#ea580c" data-s="#3b82f6" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#ea580c;cursor:pointer" title="نارنجی"></button>
+            <button type="button" class="preset-color" data-p="#0f172a" data-s="#38bdf8" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#0f172a;cursor:pointer" title="مشکی"></button>
+            <button type="button" class="preset-color" data-p="#ca8a04" data-s="#1e293b" style="width:32px;height:32px;border-radius:8px;border:2px solid #333;background:#ca8a04;cursor:pointer" title="طلایی"></button>
+          </div>
+        </div>
+        <div class="settings-card">
+          <h3><i class="fas fa-lightbulb"></i> راهنمای سایت‌ساز پازلی</h3>
+          <p style="color:#8b8ba0;line-height:2;font-size:0.95rem">
+            این پنل مثل یک <strong style="color:#c4b5fd">سایت‌ساز پازلی</strong> کار می‌کنه — بدون حتی یک خط برنامه‌نویسی:<br>
+            • <strong>سازنده سایت</strong> → نام، لوگو، رنگ، متن‌ها و بخش‌های صفحه رو عوض کن<br>
+            • <strong>افزونه‌ها</strong> → با یک کلیک واتساپ، نوار اعلان، دکمه بالا و ... رو روشن/خاموش کن<br>
+            • <strong>کدهای اختصاصی</strong> → اگر خواستی CSS / JS / HTML سفارشی بذاری، اینجا جاشه<br>
+            • <strong>فروشندگان</strong> → فروشنده بساز، رمز براش تولید می‌شه، بره محصول بذاره
+          </p>
+        </div>
+      </div>
+
+      <!-- ========== BUILDER (Settings) ========== -->
+      <div class="tab-content" id="tab-builder">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-puzzle-piece" style="color:#a78bfa"></i> سازنده سایت</h1>
+          <button class="btn-save" id="saveSettings"><i class="fas fa-save"></i> ذخیره تغییرات</button>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3><i class="fas fa-fingerprint"></i> هویت سایت</h3>
+            <div class="form-group">
+              <label>نام سایت</label>
+              <input type="text" class="form-control" id="setSiteName">
+            </div>
+            <div class="form-group">
+              <label>آدرس لوگو (URL تصویر)</label>
+              <input type="text" class="form-control" id="setLogo" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label>رنگ اصلی</label>
+              <div class="color-row">
+                <input type="color" id="setPrimaryColor" value="#7c3aed">
+                <span id="primaryLabel" style="color:#8b8ba0;font-size:0.85rem">#7c3aed</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>رنگ ثانویه (قیمت‌ها)</label>
+              <div class="color-row">
+                <input type="color" id="setSecondaryColor" value="#f59e0b">
+                <span id="secondaryLabel" style="color:#8b8ba0;font-size:0.85rem">#f59e0b</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3><i class="fas fa-heading"></i> بخش قهرمان (Hero)</h3>
+            <div class="form-group">
+              <label>عنوان اصلی</label>
+              <input type="text" class="form-control" id="setHeroTitle">
+            </div>
+            <div class="form-group">
+              <label>زیرعنوان</label>
+              <textarea class="form-control" id="setHeroSubtitle"></textarea>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3><i class="fas fa-info-circle"></i> درباره ما</h3>
+            <div class="form-group">
+              <label>عنوان</label>
+              <input type="text" class="form-control" id="setAboutTitle">
+            </div>
+            <div class="form-group">
+              <label>متن</label>
+              <textarea class="form-control" id="setAboutText"></textarea>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3><i class="fas fa-phone"></i> تماس و فوتر</h3>
+            <div class="form-group">
+              <label>ایمیل</label>
+              <input type="text" class="form-control" id="setContactEmail">
+            </div>
+            <div class="form-group">
+              <label>شماره تلفن</label>
+              <input type="text" class="form-control" id="setContactPhone">
+            </div>
+            <div class="form-group">
+              <label>آدرس</label>
+              <input type="text" class="form-control" id="setContactAddress">
+            </div>
+            <div class="form-group">
+              <label>متن فوتر</label>
+              <input type="text" class="form-control" id="setFooterText">
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3><i class="fas fa-truck"></i> ارسال و زمان تحویل</h3>
+            <div class="form-group">
+              <label>زمان تحویل (حداقل روز کاری)</label>
+              <input type="number" class="form-control" id="setDeliveryDaysMin" min="0">
+            </div>
+            <div class="form-group">
+              <label>زمان تحویل (حداکثر روز کاری)</label>
+              <input type="number" class="form-control" id="setDeliveryDaysMax" min="0">
+            </div>
+            <div class="form-group">
+              <label>عنوان منطقه ارسال ۱</label>
+              <input type="text" class="form-control" id="setShipNearLabel">
+            </div>
+            <div class="form-group">
+              <label>هزینه ارسال منطقه ۱ (تومان)</label>
+              <input type="number" class="form-control" id="setShipNearCost" min="0">
+            </div>
+            <div class="form-group">
+              <label>عنوان منطقه ارسال ۲</label>
+              <input type="text" class="form-control" id="setShipFarLabel">
+            </div>
+            <div class="form-group">
+              <label>هزینه ارسال منطقه ۲ (تومان)</label>
+              <input type="number" class="form-control" id="setShipFarCost" min="0">
+            </div>
+          </div>
+
+          <div class="settings-card full">
+            <h3><i class="fas fa-toggle-on"></i> روشن/خاموش کردن بخش‌های صفحه</h3>
+            <div class="section-toggles" id="sectionToggles">
+              <label class="section-toggle" data-key="showHero">
+                <input type="checkbox" id="setShowHero">
+                <i class="fas fa-star"></i> بخش قهرمان
+              </label>
+              <label class="section-toggle" data-key="showCategories">
+                <input type="checkbox" id="setShowCategories">
+                <i class="fas fa-th-large"></i> دسته‌بندی‌ها
+              </label>
+              <label class="section-toggle" data-key="showAbout">
+                <input type="checkbox" id="setShowAbout">
+                <i class="fas fa-info"></i> درباره ما
+              </label>
+              <label class="section-toggle" data-key="showContact">
+                <input type="checkbox" id="setShowContact">
+                <i class="fas fa-envelope"></i> تماس با ما
+              </label>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px">
+          <button class="btn-save" id="saveSettings2"><i class="fas fa-save"></i> ذخیره همه تغییرات</button>
+          <span class="saved-toast" id="settingsSaved"><i class="fas fa-check-circle"></i> ذخیره شد!</span>
+        </div>
+      </div>
+
+      <!-- ========== PLUGINS ========== -->
+      <div class="tab-content" id="tab-plugins">
+        <div class="page-header">
+          <h1 class="page-title">
+            <i class="fas fa-plug" style="color:#a78bfa"></i> افزونه‌ها
+            <span class="badge-new">۳۰۰+</span>
+          </h1>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center">
+          <div style="flex:1;min-width:200px;position:relative">
+            <i class="fas fa-search" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#6b6b80"></i>
+            <input type="text" class="form-control" id="pluginSearch" placeholder="جستجوی افزونه..." style="padding-right:40px">
+          </div>
+          <select class="form-control" id="pluginFilter" style="width:auto;min-width:140px">
+            <option value="all">همه</option>
+            <option value="enabled">فقط فعال</option>
+            <option value="disabled">فقط غیرفعال</option>
+          </select>
+          <button class="btn-save" id="showAddPlugin" type="button"><i class="fas fa-plus"></i> افزونه سفارشی</button>
+        </div>
+        <div class="settings-card" id="addPluginBox" style="display:none;margin-bottom:20px">
+          <h3><i class="fas fa-puzzle-piece"></i> ساخت افزونه سفارشی</h3>
+          <div class="settings-grid">
+            <div class="form-group"><label>نام افزونه</label><input type="text" class="form-control" id="cpName" placeholder="مثلاً بنر تخفیف من"></div>
+            <div class="form-group"><label>آیکون FontAwesome</label><input type="text" class="form-control" id="cpIcon" placeholder="fa-star" value="fa-puzzle-piece"></div>
+          </div>
+          <div class="form-group"><label>توضیحات</label><input type="text" class="form-control" id="cpDesc" placeholder="این افزونه چه کاری می‌کند؟"></div>
+          <div class="form-group"><label>نوع</label>
+            <select class="form-control" id="cpType">
+              <option value="float-btn">دکمه شناور (لینک)</option>
+              <option value="top-bar">نوار بالای صفحه</option>
+              <option value="custom-css">فقط CSS سفارشی</option>
+              <option value="custom-js">فقط JavaScript سفارشی</option>
+            </select>
+          </div>
+          <div class="form-group" id="cpLinkWrap"><label>لینک دکمه</label><input type="text" class="form-control" id="cpLink" placeholder="https://..."></div>
+          <div class="form-group" id="cpTextWrap"><label>متن</label><input type="text" class="form-control" id="cpText" placeholder="متن نمایشی"></div>
+          <div class="form-group"><label>رنگ</label><input type="color" id="cpColor" value="#7c3aed" style="width:50px;height:36px;border:none;background:none"></div>
+          <div class="form-group" id="cpCodeWrap" style="display:none"><label>کد CSS یا JS</label><textarea class="form-control" id="cpCode" rows="4" style="direction:ltr;text-align:left;font-family:monospace"></textarea></div>
+          <button class="btn-save" type="button" id="saveCustomPlugin"><i class="fas fa-check"></i> افزودن افزونه</button>
+        </div>
+        <p style="color:#8b8ba0;margin-bottom:16px" id="pluginCountLabel">در حال بارگذاری...</p>
+        <div class="plugins-grid" id="pluginsGrid"></div>
+      </div>
+
+      <!-- ========== CUSTOM CODE ========== -->
+      <div class="tab-content" id="tab-code">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-code" style="color:#a78bfa"></i> کدهای اختصاصی</h1>
+          <button class="btn-save" id="saveCode"><i class="fas fa-save"></i> ذخیره کدها</button>
+        </div>
+        <p style="color:#8b8ba0;margin-bottom:20px">اگر می‌خوای ظاهر یا رفتار سایت رو با کد سفارشی تغییر بدی، اینجا بنویس. کدها روی صفحه اصلی اعمال می‌شن.</p>
+
+        <div class="code-tabs">
+          <button class="code-tab active" data-code="css"><i class="fab fa-css3-alt"></i> CSS</button>
+          <button class="code-tab" data-code="js"><i class="fab fa-js"></i> JavaScript</button>
+          <button class="code-tab" data-code="header"><i class="fas fa-arrow-up"></i> HTML هدر</button>
+          <button class="code-tab" data-code="footer"><i class="fas fa-arrow-down"></i> HTML فوتر</button>
+        </div>
+        <div class="code-editor-wrap">
+          <div class="code-panel active" id="code-css">
+            <textarea class="code-editor" id="customCSS" spellcheck="false"></textarea>
+            <div class="code-hint">این CSS به انتهای صفحه اضافه می‌شود و می‌تواند استایل‌های پیش‌فرض را override کند.</div>
+          </div>
+          <div class="code-panel" id="code-js">
+            <textarea class="code-editor" id="customJS" spellcheck="false"></textarea>
+            <div class="code-hint">این JavaScript بعد از لود صفحه اجرا می‌شود. از document و window آزادانه استفاده کن.</div>
+          </div>
+          <div class="code-panel" id="code-header">
+            <textarea class="code-editor" id="customHeaderHTML" spellcheck="false"></textarea>
+            <div class="code-hint">این HTML دقیقاً بعد از باز شدن &lt;body&gt; قرار می‌گیرد (مثلاً برای اسکریپت آنالیتیکس یا نوار سفارشی).</div>
+          </div>
+          <div class="code-panel" id="code-footer">
+            <textarea class="code-editor" id="customFooterHTML" spellcheck="false"></textarea>
+            <div class="code-hint">این HTML قبل از بسته شدن &lt;/body&gt; قرار می‌گیرد.</div>
+          </div>
+        </div>
+        <div style="margin-top:16px">
+          <span class="saved-toast" id="codeSaved"><i class="fas fa-check-circle"></i> کدها ذخیره شدند!</span>
+        </div>
+      </div>
+
+      <!-- ========== PRODUCTS ========== -->
+      <div class="tab-content" id="tab-products">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-box" style="color:#a78bfa"></i> محصولات</h1>
+        </div>
+        <div id="productsBulkBar" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;background:#1a1a28;border:1px solid #2e2e42;border-radius:12px;padding:12px 16px;margin-bottom:16px">
+          <span id="productsSelCount" style="color:#c9c9d8;font-size:.9rem;white-space:nowrap"></span>
+          <select class="form-control" id="bulkTargetSeller" style="max-width:220px;width:auto"></select>
+          <button class="btn btn-outline" id="bulkTransferBtn" style="white-space:nowrap"><i class="fas fa-store"></i> انتقال به این فروشگاه</button>
+          <button class="btn btn-outline" id="bulkClearSelBtn" style="white-space:nowrap;margin-right:auto"><i class="fas fa-times"></i> لغو انتخاب</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox" id="selectAllProducts"></th>
+                <th>تصویر</th>
+                <th>نام</th>
+                <th>دسته‌بندی</th>
+                <th>قیمت</th>
+                <th>فروشنده</th>
+                <th>موجودی</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="productsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Product Edit Modal -->
+      <div class="modal" id="adminProductModal">
+        <div class="modal-content" style="max-width:560px;padding:32px;max-height:90vh;overflow-y:auto;background:#16161f;border:1px solid #252535">
+          <button class="modal-close" id="closeAdminProductModal" style="left:16px;right:auto"><i class="fas fa-times"></i></button>
+          <h2 style="margin-bottom:24px">ویرایش محصول</h2>
+          <input type="hidden" id="apId">
+          <div class="form-group">
+            <label>نام محصول</label>
+            <input type="text" class="form-control" id="apTitle">
+          </div>
+          <div class="form-group">
+            <label>دسته‌بندی</label>
+            <select class="form-control" id="apCategory"></select>
+          </div>
+          <div class="form-group">
+            <label>فروشنده</label>
+            <select class="form-control" id="apSeller"></select>
+          </div>
+          <div class="form-group">
+            <label>قیمت (تومان)</label>
+            <input type="number" class="form-control" id="apPrice">
+          </div>
+          <div class="form-group">
+            <label>موجودی</label>
+            <input type="number" class="form-control" id="apStock">
+          </div>
+          <div class="form-group">
+            <label>تصویر (آدرس)</label>
+            <input type="text" class="form-control" id="apImage">
+          </div>
+          <div class="form-group">
+            <label>توضیحات</label>
+            <textarea class="form-control" id="apDesc"></textarea>
+          </div>
+          <button class="btn-save" id="saveAdminProduct" style="width:100%;justify-content:center;margin-top:8px">ذخیره تغییرات</button>
+        </div>
+      </div>
+
+      <!-- ========== SELLERS ========== -->
+      <div class="tab-content" id="tab-sellers">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-users" style="color:#a78bfa"></i> فروشندگان</h1>
+        </div>
+        <div class="settings-card" style="margin-bottom:24px">
+          <h3><i class="fas fa-user-plus"></i> افزودن فروشنده جدید</h3>
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>نام فروشگاه / فروشنده</label>
+              <input type="text" class="form-control" id="sellerName" placeholder="مثال: فروشگاه کلکسیون">
+            </div>
+            <div class="form-group">
+              <label>ایمیل یا شماره تلفن</label>
+              <input type="text" class="form-control" id="sellerContact" placeholder="email@example.com یا ۰۹۱۲...">
+            </div>
+          </div>
+          <button class="btn-save" id="addSellerBtn"><i class="fas fa-magic"></i> ایجاد و تولید رمز عبور</button>
+          <div class="seller-pass-box" id="sellerPassBox">
+            <p style="margin-bottom:8px">فروشنده ساخته شد ✓ — رمز عبور:</p>
+            <code id="generatedPass"></code>
+            <p style="margin-top:12px;font-size:0.85rem;color:#8b8ba0">این رمز را به فروشنده بدهید. از صفحه ورود فروشندگان وارد می‌شود.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>نام</th>
+                <th>ایمیل / تلفن</th>
+                <th>رمز عبور</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="sellersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== CATEGORIES ========== -->
+      <div class="tab-content" id="tab-categories">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-tags" style="color:#a78bfa"></i> دسته‌بندی‌ها</h1>
+        </div>
+        <div class="settings-card" style="margin-bottom:24px">
+          <h3><i class="fas fa-plus"></i> افزودن دسته‌بندی</h3>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="form-group" style="margin:0;flex:1;min-width:160px">
+              <label>نام</label>
+              <input type="text" class="form-control" id="newCatName" placeholder="نام دسته‌بندی">
+            </div>
+            <div class="form-group" style="margin:0;flex:1;min-width:180px">
+              <label>آیکون</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button type="button" id="pickIconBtn" class="form-control" style="width:auto;display:flex;align-items:center;gap:10px;cursor:pointer;min-width:120px">
+                  <i id="pickIconPreview" class="fas fa-star" style="font-size:1.2rem;color:#a78bfa"></i>
+                  <span style="color:#8b8ba0;font-size:.85rem">انتخاب آیکون</span>
+                </button>
+                <input type="hidden" id="newCatIcon" value="fa-star">
+              </div>
+            </div>
+            <button class="btn-save" id="addCatBtn" style="margin-bottom:0"><i class="fas fa-plus"></i> افزودن</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>نام</th><th>شناسه</th><th>آیکون</th><th>عملیات</th></tr>
+            </thead>
+            <tbody id="catsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- PENDING SELLERS -->
+      <div class="tab-content" id="tab-pending">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-user-clock" style="color:#a78bfa"></i> درخواست‌های ثبت‌نام فروشنده</h1>
+        </div>
+        <p style="color:#8b8ba0;margin-bottom:20px">فروشنده‌هایی که از فرم ثبت‌نام درخواست دادن — تایید یا رد کن. با تایید، رمز عبور خودکار ساخته می‌شه.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>فروشگاه</th>
+                <th>صاحب</th>
+                <th>موبایل</th>
+                <th>کد ملی</th>
+                <th>شهر</th>
+                <th>وضعیت</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTable"></tbody>
+          </table>
+        </div>
+        <div id="pendingDetail" style="display:none;margin-top:20px" class="settings-card"></div>
+      </div>
+
+      <!-- TICKETS -->
+      <div class="tab-content" id="tab-tickets">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-ticket-alt" style="color:#a78bfa"></i> تیکت‌های پشتیبانی</h1>
+        </div>
+
+        <div class="compose-ticket-card">
+          <h2><i class="fas fa-paper-plane" style="color:#c4b5fd"></i> ارسال تیکت جدید</h2>
+          <p class="hint">به یک نفر یا ده‌ها نفر همزمان پیام بفرست. مشتری‌ها در صفحه پشتیبانی می‌بینند.</p>
+          <div class="form-group">
+            <label>گیرندگان (شماره موبایل، هر خط یکی یا با کاما)</label>
+            <textarea class="form-control" id="bulkRecipients" rows="3" placeholder="09121234567&#10;09129876543&#10;یا چند شماره با کاما"></textarea>
+          </div>
+          <div class="form-group">
+            <label>انتخاب سریع از مشتریان / سفارش‌ها</label>
+            <div class="quick-pick" id="quickRecipients"></div>
+          </div>
+          <div class="recipient-chips" id="recipientChips"></div>
+          <div class="form-group" style="margin-top:14px">
+            <label>موضوع</label>
+            <input type="text" class="form-control" id="bulkSubject" placeholder="مثلاً: پیگیری پرداخت سفارش">
+          </div>
+          <div class="form-group">
+            <label>متن پیام</label>
+            <textarea class="form-control" id="bulkMessage" rows="4" placeholder="پیام خود را بنویسید..."></textarea>
+          </div>
+          <div class="compose-actions">
+            <button type="button" class="btn-save" id="sendBulkTicketsBtn" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)">
+              <i class="fas fa-paper-plane"></i> ارسال تیکت
+            </button>
+            <button type="button" class="btn-save" id="addSelectedRecipientsBtn" style="background:#334155">
+              <i class="fas fa-user-plus"></i> افزودن انتخاب‌شده‌ها
+            </button>
+            <span id="bulkTicketToast" style="display:none;color:#34d399;font-weight:600;align-self:center"></span>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>شماره</th>
+                <th>نام</th>
+                <th>موضوع</th>
+                <th>تماس</th>
+                <th>وضعیت</th>
+                <th>تاریخ</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="ticketsTable"></tbody>
+          </table>
+        </div>
+        <div id="ticketDetail" style="display:none;margin-top:20px" class="settings-card"></div>
+      </div>
+
+      <!-- ORDERS -->
+      <div class="tab-content" id="tab-orders">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-shopping-cart" style="color:#a78bfa"></i> سفارش‌ها</h1>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>شماره</th>
+                <th>خریدار</th>
+                <th>موبایل</th>
+                <th>مبلغ</th>
+                <th>وضعیت</th>
+                <th>تاریخ</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable"></tbody>
+          </table>
+        </div>
+        <div id="orderDetail" style="display:none;margin-top:20px" class="settings-card"></div>
+      </div>
+
+      <!-- REVIEWS -->
+      <div class="tab-content" id="tab-reviews">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-star" style="color:#fbbf24"></i> نظرات محصولات</h1>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>محصول</th>
+                <th>نام</th>
+                <th>امتیاز</th>
+                <th>نظر</th>
+                <th>وضعیت</th>
+                <th>تاریخ</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+            <tbody id="reviewsTable"></tbody>
+          </table>
+        </div>
+        <div id="reviewDetail" style="display:none;margin-top:20px" class="settings-card"></div>
+      </div>
+
+      <div class="tab-content" id="tab-payments">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-credit-card" style="color:#a78bfa"></i> درگاه‌های پرداخت</h1>
+        </div>
+        <p style="color:#8b8ba0;margin-bottom:20px">درگاه‌های مورد نظرت را فعال کن و کد پذیرنده / شماره کارت را وارد کن. در نسخه دمو فقط ذخیره می‌شود.</p>
+        <div class="plugins-grid" id="paymentsGrid"></div>
+        <div style="margin-top:20px">
+          <button class="btn-save" id="savePayments"><i class="fas fa-save"></i> ذخیره درگاه‌ها</button>
+          <span class="saved-toast" id="paymentsSaved"><i class="fas fa-check-circle"></i> ذخیره شد</span>
+        </div>
+      </div>
+
+
+      <div class="tab-content" id="tab-coupons">
+        <div class="page-header">
+          <h1 class="page-title"><i class="fas fa-percent" style="color:#a78bfa"></i> کدهای تخفیف</h1>
+        </div>
+        <div class="settings-card" style="margin-bottom:20px">
+          <h3>افزودن کد تخفیف</h3>
+          <div class="settings-grid">
+            <div class="form-group"><label>کد</label><input type="text" class="form-control" id="cpCode" placeholder="OFF10" style="text-transform:uppercase"></div>
+            <div class="form-group"><label>نوع</label>
+              <select class="form-control" id="cpType">
+                <option value="percent">درصدی (%)</option>
+                <option value="fixed">مبلغ ثابت (تومان)</option>
+              </select>
+            </div>
+            <div class="form-group"><label>مقدار</label><input type="number" class="form-control" id="cpValue" placeholder="10" min="1"></div>
+          </div>
+          <button type="button" class="btn-save" id="addCouponBtn"><i class="fas fa-plus"></i> افزودن</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>کد</th><th>نوع</th><th>مقدار</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <tbody id="couponsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Plugin Settings Modal -->
+  <div class="modal" id="pluginModal">
+    <div class="modal-content" style="max-width:440px;padding:28px;background:#16161f;border:1px solid #252535">
+      <button class="modal-close" id="closePluginModal" style="left:16px;right:auto"><i class="fas fa-times"></i></button>
+      <h2 id="pluginModalTitle" style="margin-bottom:20px;font-size:1.2rem">تنظیمات افزونه</h2>
+      <div class="plugin-modal-body" id="pluginModalBody"></div>
+      <button class="btn-save" id="savePluginSettings" style="margin-top:16px;width:100%;justify-content:center">ذخیره تنظیمات</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/admin.js"></script>
+
+  <!-- Icon Picker Modal -->
+  <div class="modal" id="iconPickerModal">
+    <div class="modal-content" style="max-width:560px;padding:24px;background:#16161f;border:1px solid #252535;max-height:80vh;overflow:hidden;display:flex;flex-direction:column">
+      <button class="modal-close" id="closeIconPicker" style="left:16px;right:auto"><i class="fas fa-times"></i></button>
+      <h2 style="margin-bottom:8px;font-size:1.15rem">انتخاب آیکون</h2>
+      <input type="text" class="form-control" id="iconSearch" placeholder="جستجوی آیکون..." style="margin-bottom:14px">
+      <div id="iconGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;overflow-y:auto;flex:1;padding:4px"></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <input id="p4-option-name" placeholder="نام گزینه؛ مثلا رنگ قرمز" style="flex:1;min-width:220px;padding:12px;border-radius:10px;border:1px solid #555;background:#222;color:#fff">
+    <input id="p4-option-price" type="number" min="0" placeholder="قیمت این گزینه (تومان)" style="flex:1;min-width:220px;padding:12px;border-radius:10px;border:1px solid #555;background:#222;color:#fff">
+    <button type="button" id="p4-add-option" style="padding:12px 18px;border:0;border-radius:10px;cursor:pointer">افزودن گزینه + قیمت</button>
+  </div>
+  <div id="p4-options" style="margin-top:14px"></div>
+  <div id="p4-msg" style="margin-top:12px;color:#ffd43b"></div>
+</div>
+<script>
+(function(){
+ const photos=[...document.querySelectorAll('.p4-photo')];
+ const opts=document.getElementById('p4-options'), msg=document.getElementById('p4-msg');
+ const name=document.getElementById('p4-option-name'), price=document.getElementById('p4-option-price');
+ const list=[];
+ function render(){
+   opts.innerHTML=list.map((x,i)=>`<div style="display:flex;gap:10px;align-items:center;padding:10px;margin:7px 0;background:#1d1d1d;border-radius:12px">
+     <b style="flex:1">${x.name}</b><span>${Number(x.price).toLocaleString('fa-IR')} تومان</span>
+     <button type="button" data-i="${i}" style="border:0;border-radius:8px;padding:7px 10px;cursor:pointer">حذف</button>
+   </div>`).join('');
+   opts.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{list.splice(+b.dataset.i,1);render();});
+ }
+ document.getElementById('p4-add-option').onclick=function(){
+   if(!name.value.trim() || price.value===""){msg.textContent='نام گزینه و قیمت را وارد کنید.';return;}
+   list.push({name:name.value.trim(),price:Number(price.value)});
+   name.value='';price.value='';msg.textContent='گزینه با قیمت جداگانه اضافه شد.';render();
+ };
+ const form=photos[0] && photos[0].closest('form');
+ if(form){
+   form.addEventListener('submit',function(e){
+     if(photos.filter(x=>x.files && x.files.length).length<4){
+       e.preventDefault();msg.textContent='برای ثبت محصول حداقل ۴ عکس باید انتخاب شود.';return;
+     }
+     if(!list.length){e.preventDefault();msg.textContent='حداقل یک گزینه و قیمت آن را اضافه کنید.';return;}
+     let hidden=form.querySelector('#p4-data');
+     if(!hidden){hidden=document.createElement('input');hidden.type='hidden';hidden.id='p4-data';hidden.name='variant_prices';form.appendChild(hidden);}
+     hidden.value=JSON.stringify(list);
+   });
+ }
+})();
+</script>
+
+
+
+<style id="one-options-inside-product">
+#productOptionsInside{display:none;margin-top:14px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.035)}
+#productOptionsInside.on{display:block}
+.poi-group{padding:12px;margin-top:10px;border:1px solid rgba(255,255,255,.1);border-radius:13px}
+.poi-group-title{display:flex;gap:8px;align-items:center}
+.poi-group input,.poi-opt input{box-sizing:border-box;width:100%;padding:10px;border-radius:10px;border:1px solid #444;background:#111;color:inherit;font:inherit}
+.poi-opt{display:grid;grid-template-columns:1fr 170px 38px;gap:8px;align-items:center;margin-top:8px}
+.poi-price{position:relative}.poi-price input{padding-left:45px!important}
+.poi-price:after{content:"تومان";position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;color:#aaa;pointer-events:none}
+.poi-btn{border:0;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit}
+.poi-add{background:#f5b800;color:#111;font-weight:800}
+.poi-del{background:#5b1d1d;color:#fff}
+@media(max-width:600px){.poi-opt{grid-template-columns:1fr 120px 38px}}
+</style>
+<script id="one-options-inside-product">
+(function(){
+  function txt(e){return String(e?.innerText||e?.value||e?.getAttribute?.('aria-label')||e?.title||'').trim();}
+  function isActivation(e){
+    const t=txt(e);
+    return /فعال کردن گزینه|فعال.*گزینه|گزینه.*فعال|تنوع.*فعال/.test(t);
+  }
+  function findActivation(){
+    return [...document.querySelectorAll('input[type="checkbox"],button,label')].find(isActivation);
+  }
+  function productContainer(toggle){
+    return toggle.closest('form') ||
+      toggle.closest('[role="dialog"]') ||
+      toggle.closest('.modal,.drawer,.card,.panel') ||
+      toggle.parentElement;
+  }
+  function make(toggle){
+    const host=productContainer(toggle);
+    if(!host || host.querySelector('#productOptionsInside')) return host?.querySelector('#productOptionsInside');
+    const box=document.createElement('div');
+    box.id='productOptionsInside';
+    box.innerHTML='<div style="font-weight:800;font-size:16px">گزینه‌های محصول</div>'+
+      '<div style="font-size:12px;color:#aaa;margin-top:4px">برای هر گزینه قیمت جداگانه وارد کنید.</div>'+
+      '<div id="poiGroups"></div>'+
+      '<button type="button" class="poi-btn poi-add" id="poiAddGroup" style="margin-top:12px">＋ افزودن گروه گزینه</button>';
+    host.appendChild(box);
+    const groups=box.querySelector('#poiGroups');
+
+    function addGroup(){
+      const g=document.createElement('div'); g.className='poi-group';
+      g.innerHTML='<div class="poi-group-title"><input class="poi-group-name" placeholder="نام گزینه؛ مثلاً رنگ"><button type="button" class="poi-btn poi-del">حذف گروه</button></div><div class="poi-rows"></div><button type="button" class="poi-btn poi-add" style="margin-top:8px">＋ افزودن گزینه</button>';
+      const rows=g.querySelector('.poi-rows');
+      function addOpt(){
+        const r=document.createElement('div'); r.className='poi-opt';
+        r.innerHTML='<input class="poi-opt-name" placeholder="مثلاً قرمز"><div class="poi-price"><input class="poi-opt-price" type="number" min="0" step="1" placeholder="قیمت"></div><button type="button" class="poi-btn poi-del">×</button>';
+        r.querySelector('button').onclick=()=>r.remove();
+        rows.appendChild(r);
+      }
+      g.querySelectorAll('.poi-del')[0].onclick=()=>g.remove();
+      g.querySelector('.poi-add').onclick=addOpt;
+      groups.appendChild(g);
+      addOpt();
+    }
+    box.querySelector('#poiAddGroup').onclick=addGroup;
+    return box;
+  }
+
+  function setup(){
+    const t=findActivation();
+    if(!t || t.dataset.poiBound) return;
+    t.dataset.poiBound='1';
+    const box=make(t);
+    function state(){
+      let active=false;
+      if(t.type==='checkbox') active=t.checked;
+      else active=/فعال/.test(txt(t));
+      box.classList.toggle('on',active);
+    }
+    t.addEventListener('change',state);
+    t.addEventListener('click',()=>setTimeout(state,30));
+    state();
+  }
+
+  document.addEventListener('DOMContentLoaded',setup);
+  new MutationObserver(setup).observe(document.body,{childList:true,subtree:true});
+
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('button,input[type="submit"]');
+    if(!b || !/ثبت محصول|ثبت|ذخیره محصول|افزودن محصول/.test(txt(b))) return;
+    const form=b.closest('form');
+    const box=form?.querySelector('#productOptionsInside') || document.querySelector('#productOptionsInside');
+    if(!box) return;
+    const data=[...box.querySelectorAll('.poi-group')].map(g=>({
+      name:g.querySelector('.poi-group-name')?.value.trim()||'',
+      options:[...g.querySelectorAll('.poi-opt')].map(r=>({
+        name:r.querySelector('.poi-opt-name')?.value.trim()||'',
+        price:Number(r.querySelector('.poi-opt-price')?.value||0)
+      })).filter(x=>x.name)
+    })).filter(x=>x.name);
+    if(form){
+      let h=form.querySelector('input[name="product_options"]');
+      if(!h){h=document.createElement('input');h.type='hidden';h.name='product_options';form.appendChild(h)}
+      h.value=JSON.stringify(data);
+    }
+  },true);
+})();
+</script>
+</body>
+</html>
